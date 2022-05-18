@@ -1,0 +1,49 @@
+id: default
+groups: {}
+comments: []
+routes:
+  - id: iHcMIa
+    name: event_simpleNames_To_Drop
+    final: true
+    disabled: true
+    pipeline: devnull
+    description: Drop events matching the event_simpleNames. Only works if event if
+      eventbreaker is set to parse as json, not regex
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: C.Lookup('event_simpleNames_DROP.csv').match(event_simpleName)
+    output: default
+  - id: default
+    name: Redis_Inventory_Population
+    final: true
+    disabled: true
+    pipeline: Inventory_Events_Redis
+    description: ""
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('fdrv2/aimaster') > -1
+    output: default
+  - id: ZRmszg
+    name: Crowdstrike_Events_with_simpleName
+    final: true
+    disabled: false
+    pipeline: Crowdstrike_General
+    description: ""
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('/data/') > -1
+    output: default
+  - id: axEJ0g
+    name: default
+    final: true
+    disabled: false
+    pipeline: main
+    description: Default
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: "true"
+    output: default

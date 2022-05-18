@@ -1,0 +1,65 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Drop unwanted event_simpleNames as defined in the lookup
+  - id: drop
+    filter: C.Lookup('event_simpleNames_DROP.csv').match(_raw.event_simpleName)
+    disabled: false
+    conf: {}
+    final: true
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Enable enrichment from Redis. Disable if not using Redis
+  - id: chain
+    filter: "true"
+    disabled: true
+    conf:
+      processor: Inventory_Enrich_FromRedis
+    description: Enrich from Redis
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Chain function for different events
+  - id: chain
+    filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
+    disabled: false
+    conf:
+      processor: Crowdstrike_Network
+    description: Network Events
+    final: true
+  - id: chain
+    filter: C.Lookup('event_simpleName_Processes.csv').match(_raw.event_simpleName)
+    disabled: false
+    conf:
+      processor: Crowdstrike_Processes
+    description: Process & Services
+    final: true
+  - id: chain
+    filter: _raw.event_simpleName=='DnsRequest'
+    disabled: false
+    conf:
+      processor: Crowdstrike_DNS
+    final: true
+    description: DNS Requests
+  - id: chain
+    filter: "true"
+    disabled: false
+    conf:
+      processor: Crowdstrike_OtherEvents
+    description: Other Events
+    final: false

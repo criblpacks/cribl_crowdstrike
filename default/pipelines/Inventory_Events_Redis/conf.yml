@@ -1,0 +1,42 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Prep events as JSON
+  - id: redis
+    filter: "true"
+    disabled: null
+    conf:
+      commands:
+        - outField: __hmset_result
+          command: hmset
+          keyExpr: "'aid.'+_raw.aid"
+          argsExpr: "['ComputerName',_raw.ComputerName, 'OU',_raw.OU,
+            'MachineDomain',_raw.MachineDomain,
+            'AgentLocalTime',_raw.AgentLocalTime,
+            'event_platform',_raw.event_platform, 'Version',_raw.Version,
+            'aip',_raw.aip, 'City',_raw.City, 'Country',_raw.Country,
+            'Timezone',_raw.Timezone, 'FirstSeen',_raw.FirstSeen]"
+        - outField: __expire_results
+          command: expire
+          keyExpr: "'aid.'+_raw.aid"
+          argsExpr: "600"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:bQPPvYQXYx0xM9NAcK+rk1pvrWaldeD1iHInGeATAuWT6LnMwJhHPCjDmDxJ9x9A8W\
+        r0SbUffFqa6HirgncdFA=="
+    description: " source.includes('aidmaster') || source.includes('inventory') ||
+      ComputerName.length > 0"
+  - id: drop
+    filter: "true"
+    disabled: true
+    conf: {}
+    description: Optionally drop inventory events

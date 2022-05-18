@@ -1,0 +1,15 @@
+event_simpleName,comment
+ProcessRollup2
+SyntheticProcessRollup2
+EndOfProcess
+SuspiciousLackOfProcessRollupEvents
+ProcessRollup2Stats
+TerminateProcess
+SuspiciousPrivilegedProcessHandle
+ProcessInjection
+ReflectiveDllOpenProcess
+WmiCreateProcess
+ProcessSelfDeleted
+ServiceStarted,
+CreateService,
+HostedServiceStarted,

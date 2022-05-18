@@ -1,0 +1,15 @@
+event_simpleName,comment
+NetworkConnectIP4
+RawBindIP4
+NetworkReceiveAcceptIP4
+NetworkListenIP4
+NetworkCloseIP4
+PromiscuousBindIP4
+NeighborListIP4
+LocalIpAddressIP4
+FirewallDeleteRuleIP4
+NetworkConnectIP6
+NetworkReceiveAcceptIP6
+RawBindIP6
+NetworkListenIP6
+NetworkCloseIP6

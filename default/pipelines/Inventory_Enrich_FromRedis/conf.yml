@@ -1,0 +1,113 @@
+output: default
+groups:
+  6iaipC:
+    name: Enrich from Redis
+    description: ENABLE ONLY ONE FUNCTION in this group to minimize Redis polling
+    index: 1
+    disabled: false
+  kGuNiM:
+    name: Flatten Inventory array and move to _raw
+    index: 2
+    disabled: false
+    description: Only applies if Redis function defining Inventory is enabled
+  5Nm97L:
+    name: Remove Empty Arrays
+    index: 3
+asyncFuncTimeout: 1000
+functions:
+  - id: eval
+    filter: "!Array.isArray(_raw)"
+    disabled: true
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Prep _raw as JSON if it isnt already a JSON object
+  - id: redis
+    filter: "true"
+    disabled: false
+    conf:
+      commands:
+        - outField: ComputerName
+          command: hget
+          keyExpr: "'aid.'+_raw.aid"
+          argsExpr: "'ComputerName'"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:kNRPkVs8Dedog8pGzKfC0cucEg/8cPbhAV4sWiEeHniuBOADhyhby12lZHl/6shyz1\
+        KjA9z5EpsL696TZAhVPQ=="
+    description: Enrich ComputerName ONLY with hget from Redis
+    groupId: 6iaipC
+  - id: redis
+    filter: "true"
+    disabled: false
+    conf:
+      commands:
+        - outField: Computer_OU
+          command: hmget
+          keyExpr: "'aid.'+_raw.aid"
+          argsExpr: "['ComputerName','OU']"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:0K+O1D6YtXS4uqUMkoNiP9UB59qDBmCKm7RZhHzAVQymr1QKrZ0rgDfiYngXklNNyt\
+        fb1WF2qFgbzL+9IRQ++w=="
+    description: Enrich multiple fields with hmget from Redis
+    groupId: 6iaipC
+  - id: redis
+    filter: "true"
+    disabled: false
+    conf:
+      commands:
+        - outField: Inventory
+          command: hgetall
+          keyExpr: "'aid.'+_raw.aid"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:o2b0nZUB/HAuevu2CLFvsYZfGgB5y8PDLWqNISdWkUdphCuifIhRjCHff3kFJqXEJ8\
+        TLS07decVlL6AneW+61Q=="
+    description: Enrich ALL fields with hgetall from Redis
+    groupId: 6iaipC
+  - id: flatten
+    filter: Inventory
+    disabled: false
+    conf:
+      fields:
+        - Inventory
+      prefix: ""
+      depth: 5
+      delimiter: _
+    groupId: kGuNiM
+  - id: rename
+    filter: Inventory
+    disabled: false
+    conf:
+      wildcardDepth: 5
+      baseFields: []
+      renameExpr: "name.startsWith('Inventory_')? name.replace(/Inventory_/,\"\") : name"
+    groupId: kGuNiM
+  - id: eval
+    filter: "ComputerName==null "
+    disabled: null
+    conf:
+      remove:
+        - ComputerName
+      add: []
+    groupId: 5Nm97L
+  - id: eval
+    filter: "Inventory==null "
+    disabled: null
+    conf:
+      remove:
+        - Inventory
+      add: []
+    groupId: 5Nm97L
+  - id: eval
+    filter: Computer_OU.includes(null,null)
+    disabled: null
+    conf:
+      remove:
+        - Computer_OU
+    groupId: 5Nm97L

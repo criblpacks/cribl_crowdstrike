@@ -1,0 +1,27 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: serde
+    filter: "true"
+    disabled: null
+    conf:
+      mode: reserialize
+      type: json
+      srcField: _raw
+      remove:
+        - Config*
+        - Entitlements
+        - name
+        - Timeout
+      fieldFilterExpr: value != 0 && value != null && value != 'null'
+      keep: []
+    description: Remove noisy fields
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Reduce size

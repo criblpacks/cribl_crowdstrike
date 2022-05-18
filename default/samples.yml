@@ -1,0 +1,50 @@
+nssbh1:
+  sampleName: Crowdstrike_aimaster_sample1.log
+  created: 1650503131929
+  size: 2727
+  numEvents: 3
+  modified: 1651340506263
+  isPackOnly: true
+bg41vW:
+  sampleName: Crowdstrike_Sample_1.log
+  created: 1651199969494
+  size: 324025
+  numEvents: 428
+8R6yOH:
+  sampleName: Crowdstrike_aimaster_sample2.txt
+  created: 1651201810546
+  size: 10679
+  numEvents: 10
+  modified: 1651374789082.999
+  isPackOnly: true
+eUXPvT:
+  sampleName: Crowdstrike_Sample_2.txt
+  created: 1651352285539
+  size: 307276
+  numEvents: 184
+  modified: 1651717851727.999
+  isPackOnly: true
+jJFHLX:
+  sampleName: Crowdstrike_Network.txt
+  created: 1651360574208
+  size: 267693
+  numEvents: 336
+2pgg0E:
+  sampleName: Crowdstrike_LongCommandLineEvents.json
+  created: 1651383141343
+  size: 9572
+  numEvents: 3
+  modified: 1651383382303.999
+  isPackOnly: true
+sHOVut:
+  sampleName: Crowdstrike_process.txt
+  created: 1651383979444
+  size: 310008
+  numEvents: 213
+8LLEZX:
+  sampleName: Crowdstrike_DNSRequest.txt
+  created: 1651693585085
+  size: 319924
+  numEvents: 341
+  modified: 1651718108917
+  isPackOnly: true

@@ -1,0 +1,119 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: serde
+    filter: "!event_simpleName"
+    disabled: null
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+      fields: []
+      keep:
+        - event_simpleName
+        - DomainName
+        - CNAMERecords
+    description: Prep event if simplename not present
+  - id: eval
+    filter: DomainName!='wpad'
+    disabled: false
+    conf:
+      add:
+        - value: DomainName.split(".")
+          name: DomainArray
+        - name: DomainArray
+          value: DomainArray.reverse()
+        - name: DomainL2
+          value: DomainArray[1]+'.'+DomainArray[0]
+        - name: DomainL3
+          value: DomainArray[2]+'.'+DomainL2
+        - name: DomainL4
+          value: DomainArray[3]+'.'+DomainL3
+    description: Split DomainName, exclude wpad
+  - id: eval
+    filter: DomainName!='wpad'
+    disabled: true
+    conf:
+      add:
+        - value: C.lookup('majestic_million-rootdomains-100k.csv','Domain').match(DomainL2)
+          name: L2Lookup
+    description: Alternative for multi-stage lookup
+  - id: lookup
+    filter: DomainName!='wpad'
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL4
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_million_100k.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L4
+          defaultValue: NA
+    description: Is domain a top 100K Level 4
+  - id: lookup
+    filter: DomainName!='wpad'
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL3
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_million_100k.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L3
+          defaultValue: NA
+    description: Is domain a top 100K Level 3
+  - id: lookup
+    filter: DomainName!='wpad'
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL2
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_million_100k.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L2
+          defaultValue: NA
+    description: Is domain a top 100K Level 2
+  - id: drop
+    filter: "!(L2 == 'NA' && L3 == 'NA' && L4 == 'NA')"
+    disabled: false
+    conf: {}
+    description: Lax filter since Majestic Million has mostly root level domains
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      keep:
+        - _raw
+        - cribl*
+        - _time
+      remove:
+        - "*"
+    description: Drop all unnecessary fields
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: JSON Parse

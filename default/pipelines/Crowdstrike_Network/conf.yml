@@ -1,0 +1,283 @@
+output: default
+groups:
+  lYiMNr:
+    name: Native Aggregation
+    description: Enable to replace raw events with aggregation events for Network Connect
+      Events
+    disabled: false
+    index: 4
+  dlLbUK:
+    name: Redis Aggregation
+    index: 6
+    disabled: true
+asyncFuncTimeout: 1000
+functions:
+  - id: serde
+    filter: "true"
+    disabled: false
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+      keep:
+        - Local*
+        - Remote*
+        - aip
+        - aid
+        - Protocol
+        - event_simpleName
+        - Connection*
+        - timestamp
+    description: Agg & Filter prep
+  - id: drop
+    filter: RemoteAddressIP4.length>0 && LocalAddressIP4.length>0 && RemoteAddressIP4
+      == LocalAddressIP4
+    disabled: false
+    conf: {}
+    description: RemoteIP = LocalIP
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Enable Group A OR Group B, NOT BOTH
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: "GROUP A: Cribl Native Aggregation "
+  - id: aggregation
+    filter: LocalPort <= RemotePort
+    disabled: false
+    conf:
+      passthrough: false
+      preserveGroupBys: true
+      sufficientStatsOnly: false
+      metricsMode: true
+      timeWindow: 6000s
+      aggregations:
+        - values(event_simpleName)
+        - values(ConnectionDirection)
+        - values(ConnectionFlags)
+        - values(RemotePort)
+        - count()
+      cumulative: false
+      flushOnInputClose: true
+      groupbys:
+        - Local*
+        - RemoteAdd*
+        - aid*
+      add: []
+    groupId: lYiMNr
+  - id: aggregation
+    filter: LocalPort > RemotePort
+    disabled: false
+    conf:
+      passthrough: false
+      preserveGroupBys: false
+      sufficientStatsOnly: false
+      metricsMode: false
+      timeWindow: 6000s
+      aggregations:
+        - values(LocalPort)
+        - values(event_simpleName)
+        - values(ConnectionDirection)
+        - values(RemotePort)
+        - values(aip)
+        - count()
+      cumulative: false
+      flushOnInputClose: true
+      groupbys:
+        - LocalAdd*
+        - aid*
+        - Remote*
+      add: []
+    groupId: lYiMNr
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: "GROUP B: Aggregation via Redis"
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: Agg_Count_Threshold
+          value: "100"
+        - name: Agg_Period
+          value: "60"
+    groupId: dlLbUK
+    description: Agg Thresholds Definition
+  - id: eval
+    filter: LocalPort !== undefined && RemotePort !== undefined
+    disabled: true
+    conf:
+      add:
+        - name: __network_key
+          value: "LocalPort <= RemotePort ?
+            '__net___'+LocalAddressIP4+'___'+LocalPort+'___'+RemoteAddressIP4+'\
+            ___'+Protocol :
+            '__net___'+RemoteAddressIP4+'___'+RemotePort+'___'+LocalAddressIP4+\
+            '___'+Protocol"
+        - name: __network_key
+          value: "LocalPort == 0 ?
+            '__net___'+RemoteAddressIP4+'___'+RemotePort+'___'+LocalAddressIP4+\
+            '___'+Protocol+'___'+aip : __network_key"
+        - name: __network_key
+          value: "RemotePort == 0  ?
+            '__net___'+LocalAddressIP4+'___'+LocalPort+'___'+RemoteAddressIP4+'\
+            ___'+Protocol+'___'+aip : __network_key"
+    groupId: dlLbUK
+    description: set key field for redis; account for who has lower port and higher port
+  - id: redis
+    filter: "true"
+    disabled: true
+    conf:
+      commands:
+        - outField: __setnx_results
+          command: setnx
+          keyExpr: __network_key
+          argsExpr: "1"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:h46oGVRK1Jtv2c98oOxFKZZcRoe2fXDlLMvG06VTdeLCwnmOduH2eAQQ0TKqAJIj6D\
+        VkyTSc1F2Yi9GqReG06A=="
+    description: Create key in Redis regardless of traffic direction
+    groupId: dlLbUK
+  - id: redis
+    filter: __setnx_results==1
+    disabled: true
+    conf:
+      commands:
+        - outField: __sadd_simplename_results
+          command: sadd
+          keyExpr: "'eventnames'+ __network_key"
+          argsExpr: event_simpleName
+        - outField: __expire_simplename_results
+          command: expire
+          keyExpr: "'eventnames'+ __network_key"
+          argsExpr: Agg_Period
+        - outField: __expire_networkkey_results
+          command: expire
+          keyExpr: __network_key
+          argsExpr: Agg_Period
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:/59HJGcP77eT7BHr5D/ATbZyEg1tPPf1eQ/AO7JaAfda1E5UT7w7iok+SgqyN2TttK\
+        10pGAzYEZlAtAPUeRrlw=="
+    description: Avoiding collisions so lists of simpleNames are accurate. Setting values
+      only if setnx was successful
+    groupId: dlLbUK
+  - id: redis
+    filter: __setnx_results==0
+    disabled: true
+    conf:
+      commands:
+        - outField: __sadd_simplename_results
+          command: sadd
+          keyExpr: "'eventnames'+ __network_key"
+          argsExpr: event_simpleName
+        - command: incrby
+          outField: Agg_Count
+          keyExpr: __network_key
+          argsExpr: "1"
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:jXdQEvCoLs8GF6Z84xjT4JhIt7y/28WhR85QgXukIlg8x5H7x77bwqVdoJI6AG6mbi\
+        LcNFPDk3Vkq4eVqKT2dw=="
+    description: "Avoiding collisions so lists of simpleNames and count are accurate. "
+    groupId: dlLbUK
+  - id: redis
+    filter: __setnx_results==0 &&  Agg_Count == Agg_Count_Threshold
+    disabled: true
+    conf:
+      commands:
+        - outField: event_simpleName
+          command: smembers
+          keyExpr: "'eventnames'+ __network_key"
+        - outField: Agg_Window
+          command: pttl
+          keyExpr: __network_key
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:C3DUibZhv+kHOGICgQEk/RUnrMMSQoudZnc5LEHz3i3D4iCpCRgX/sgMElTBF/IwWf\
+        cLphKhhjwoxEu+0/KHXA=="
+    description: Get list of simpleNames being aggregated & time period for aggregation
+    groupId: dlLbUK
+  - id: redis
+    filter: __setnx_results==0 &&  Agg_Count == Agg_Count_Threshold
+    disabled: true
+    conf:
+      commands:
+        - outField: __del_results
+          command: del
+          keyExpr: "'eventnames'+ __network_key"
+          argsExpr: __network_key
+      authType: manual
+      maxBlockSecs: 60
+      url: redis://redis-cache:6379
+      password: "#42:B8ETWwb7ScnwlQdAPazy7sMdWu3u3t8uwgSNHxLQJYz8wOSVYM/3j1ipZcHDu6BwwR\
+        irHahXtY+UN2Mho5Gubg=="
+    description: Delete both keys to start new aggregation period
+    groupId: dlLbUK
+  - id: drop
+    filter: (__setnx_results==0 && Agg_Count < Agg_Count_Threshold) ||
+      (__setnx_results==1)
+    disabled: true
+    conf: {}
+    groupId: dlLbUK
+    final: true
+    description: Drop all events if agg count is less than 10
+  - id: eval
+    filter: Agg_Window !== undefined
+    disabled: true
+    conf:
+      add:
+        - name: Agg_Window
+          value: (Agg_Period - Agg_Window/1000).toFixed(3)
+    groupId: dlLbUK
+  - id: serialize
+    filter: __setnx_results !== undefined
+    disabled: true
+    conf:
+      type: json
+      dstField: _raw
+      fields:
+        - aid
+        - aip
+        - Local*
+        - Remote*
+        - Protocol
+        - timestamp
+        - "*count"
+        - "!Agg_Period"
+        - Agg*
+        - event_simpleName*
+    groupId: dlLbUK
+    description: Built aggregate event
+  - id: eval
+    filter: __setnx_results !== undefined
+    disabled: true
+    conf:
+      remove:
+        - aid
+        - aip
+        - Local*
+        - Remote*
+        - Protocol
+        - Conn*
+        - timestamp
+        - event_simpleName
+        - Agg*
+    groupId: dlLbUK
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)

@@ -1,0 +1,13 @@
+event_simpleName,comment
+ChannelVersionRequired,High Volume-Low Value fields-add or remove from list
+CurrentSystemTags
+LightningLatencyInfo
+SensorHeartbeat
+RawBindIP4
+ResourceUtilization
+FalconServiceStatus
+PeVersionInfo
+FirmwareRegionMeasured
+SpotlightEntityBatch,
+ProvisioningChannelVersionRequired,
+ConfigStateHash,

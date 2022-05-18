@@ -1,0 +1,95 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: serde
+    filter: "true"
+    disabled: false
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+  - id: drop
+    filter: DomainName == 'wpad'
+    disabled: false
+    conf: {}
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      add:
+        - value: DomainName.split(".")
+          name: DomainArray
+        - name: DomainArray
+          value: DomainArray.reverse()
+        - name: DomainL2
+          value: DomainArray[1]+'.'+DomainArray[0]
+        - name: DomainL3
+          value: DomainArray[2]+'.'+DomainL2
+        - name: DomainL4
+          value: DomainArray[3]+'.'+DomainL3
+  - id: lookup
+    filter: "true"
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL4
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_1M_not_root.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L4
+          defaultValue: NA
+  - id: lookup
+    filter: "true"
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL3
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_1M_not_root.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L3
+          defaultValue: NA
+  - id: lookup
+    filter: "true"
+    disabled: false
+    conf:
+      matchMode: exact
+      reloadPeriodSec: 60
+      addToEvent: false
+      inFields:
+        - eventField: DomainL2
+          lookupField: Domain
+      ignoreCase: false
+      matchType: first
+      file: majestic_1M_not_root.csv
+      outFields:
+        - lookupField: GlobalRank
+          eventField: L2
+          defaultValue: NA
+  - id: drop
+    filter: "!(L2 == 'NA' && L3 == 'NA' && L4 == 'NA')"
+    disabled: false
+    conf: {}
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      keep:
+        - _raw
+        - _time
+      remove:
+        - "*"
+      add: []
