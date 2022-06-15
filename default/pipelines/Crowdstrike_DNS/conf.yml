@@ -2,9 +2,17 @@ output: default
 groups: {}
 asyncFuncTimeout: 1000
 functions:
+  - id: eval
+    filter: "!Array.isArray(_raw)"
+    disabled: true
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Enable when directly testing this pipeline. Disable when complete
   - id: serde
-    filter: "!event_simpleName"
-    disabled: null
+    filter: "true"
+    disabled: false
     conf:
       mode: extract
       type: json
@@ -103,7 +111,7 @@ functions:
     disabled: false
     conf:
       keep:
-        - _raw
+        - _raw*
         - cribl*
         - _time
       remove:
@@ -111,9 +119,8 @@ functions:
     description: Drop all unnecessary fields
   - id: eval
     filter: "true"
-    disabled: null
+    disabled: true
     conf:
       add:
         - name: _raw
           value: JSON.parse(_raw)
-    description: JSON Parse

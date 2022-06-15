@@ -1,5 +1,9 @@
 output: default
-groups: {}
+groups:
+  DmApP8:
+    name: Timestamp Fix
+    description: Known Events have timestamp or ContextTimeStamp
+    index: 2
 asyncFuncTimeout: 1000
 functions:
   - id: eval
@@ -9,6 +13,42 @@ functions:
       add:
         - name: _raw
           value: JSON.parse(_raw)
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Timestamp fixing based on event content. In place incase Event Breakers
+        arent imported
+  - id: auto_timestamp
+    filter: _raw.timestamp.length > 0 && !_raw.ContextTimeStamp
+    disabled: false
+    conf:
+      srcField: _raw.timestamp
+      dstField: _time
+      defaultTimezone: utc
+      timeExpression: time.getTime() / 1000
+      offset: 0
+      maxLen: 150
+      defaultTime: now
+      latestDateAllowed: +1week
+      earliestDateAllowed: -420weeks
+      timestamps: []
+    description: timestamp field if present
+    groupId: DmApP8
+  - id: auto_timestamp
+    filter: _raw.ContextTimeStamp.length > 0
+    disabled: false
+    conf:
+      srcField: _raw. ContextTimeStamp
+      dstField: _time
+      defaultTimezone: utc
+      timeExpression: time.getTime() / 1000
+      offset: 0
+      maxLen: 150
+      defaultTime: now
+      latestDateAllowed: +1week
+      earliestDateAllowed: -420weeks
+    groupId: DmApP8
   - id: comment
     filter: "true"
     disabled: null
@@ -56,6 +96,13 @@ functions:
       processor: Crowdstrike_DNS
     final: true
     description: DNS Requests
+  - id: chain
+    filter: _raw.EventType=='Event_ExternalApiEvent'
+    disabled: false
+    conf:
+      processor: Crowdstrike_ExternalAPIEvent
+    description: Event_ExternalApiEvent
+    final: true
   - id: chain
     filter: "true"
     disabled: false

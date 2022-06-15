@@ -52,13 +52,12 @@ functions:
       passthrough: false
       preserveGroupBys: true
       sufficientStatsOnly: false
-      metricsMode: true
-      timeWindow: 6000s
+      metricsMode: false
+      timeWindow: 60s
       aggregations:
-        - values(event_simpleName)
-        - values(ConnectionDirection)
-        - values(ConnectionFlags)
-        - values(RemotePort)
+        - values(event_simpleName).as(event_simpleName)
+        - values(RemotePort).as(RemotePort)
+        - values(aip).as(aip)
         - count()
       cumulative: false
       flushOnInputClose: true
@@ -76,13 +75,11 @@ functions:
       preserveGroupBys: false
       sufficientStatsOnly: false
       metricsMode: false
-      timeWindow: 6000s
+      timeWindow: 60s
       aggregations:
-        - values(LocalPort)
-        - values(event_simpleName)
-        - values(ConnectionDirection)
-        - values(RemotePort)
-        - values(aip)
+        - values(event_simpleName).as(event_simpleName)
+        - values(LocalPort).as(LocalPort)
+        - values(aip).as(aip)
         - count()
       cumulative: false
       flushOnInputClose: true
@@ -91,6 +88,21 @@ functions:
         - aid*
         - Remote*
       add: []
+    groupId: lYiMNr
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - value: "aip.length==1 ? aip[0] : aip"
+          name: aip
+        - name: event_simpleName
+          value: "event_simpleName.length==1 ? event_simpleName.length[0] :
+            event_simpleName"
+        - name: LocalPort
+          value: "LocalPort.length==1 ? LocalPort[0] : LocalPort"
+        - value: "RemotePort.length==1 ? RemotePort[0] : RemotePort"
+          name: RemotePort
     groupId: lYiMNr
   - id: comment
     filter: "true"
@@ -141,8 +153,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:h46oGVRK1Jtv2c98oOxFKZZcRoe2fXDlLMvG06VTdeLCwnmOduH2eAQQ0TKqAJIj6D\
-        VkyTSc1F2Yi9GqReG06A=="
+      password: "#42:CtvevVeTYLPBCKQvzGdtYnipDY4VL4q87QX7H8Bmt8kvjjxKxTvOaii27Aj4B9Mk4C\
+        PcPO1Xdp0tX8wyIOVb4A=="
     description: Create key in Redis regardless of traffic direction
     groupId: dlLbUK
   - id: redis
@@ -165,8 +177,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:/59HJGcP77eT7BHr5D/ATbZyEg1tPPf1eQ/AO7JaAfda1E5UT7w7iok+SgqyN2TttK\
-        10pGAzYEZlAtAPUeRrlw=="
+      password: "#42:lq8LTt5+moZI5LZi8r7DdnA/y8YPG8uwJLipJC54djwAgHkyBcNRJd2FZN63rzPMNK\
+        rNmwO3RtkJ9wLkv4rC9A=="
     description: Avoiding collisions so lists of simpleNames are accurate. Setting values
       only if setnx was successful
     groupId: dlLbUK
@@ -186,8 +198,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:jXdQEvCoLs8GF6Z84xjT4JhIt7y/28WhR85QgXukIlg8x5H7x77bwqVdoJI6AG6mbi\
-        LcNFPDk3Vkq4eVqKT2dw=="
+      password: "#42:BaZktqqykf0WI/pKQnf5fD8R2yqCaQO97gOyLOhWosTgyldnIf3Su9bX5axqEvh6E6\
+        SgrUbuRJQpUYpCo8lttw=="
     description: "Avoiding collisions so lists of simpleNames and count are accurate. "
     groupId: dlLbUK
   - id: redis
@@ -204,8 +216,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:C3DUibZhv+kHOGICgQEk/RUnrMMSQoudZnc5LEHz3i3D4iCpCRgX/sgMElTBF/IwWf\
-        cLphKhhjwoxEu+0/KHXA=="
+      password: "#42:piR/cwINazA7H7JROhB8du0X8XVgqhtk6bhpUhrNvqFNhO43G2A8GGHcxgeStt9r0W\
+        WD6PTn7NlHtkVqtu9k4g=="
     description: Get list of simpleNames being aggregated & time period for aggregation
     groupId: dlLbUK
   - id: redis
@@ -220,8 +232,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:B8ETWwb7ScnwlQdAPazy7sMdWu3u3t8uwgSNHxLQJYz8wOSVYM/3j1ipZcHDu6BwwR\
-        irHahXtY+UN2Mho5Gubg=="
+      password: "#42:Jumg2cawBlFOq5nl+9XzH6aeUDd3Q5HZPiN0isSDMje694u2tWtviCKQoBp0Gy6mPw\
+        FmgaYavGySm8OEvTxArA=="
     description: Delete both keys to start new aggregation period
     groupId: dlLbUK
   - id: drop

@@ -2,18 +2,6 @@ id: default
 groups: {}
 comments: []
 routes:
-  - id: iHcMIa
-    name: event_simpleNames_To_Drop
-    final: true
-    disabled: true
-    pipeline: devnull
-    description: Drop events matching the event_simpleNames. Only works if event if
-      eventbreaker is set to parse as json, not regex
-    clones: []
-    enableOutputExpression: false
-    outputExpression: null
-    filter: C.Lookup('event_simpleNames_DROP.csv').match(event_simpleName)
-    output: default
   - id: default
     name: Redis_Inventory_Population
     final: true

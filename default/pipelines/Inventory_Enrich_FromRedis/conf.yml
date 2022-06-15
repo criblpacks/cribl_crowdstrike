@@ -35,8 +35,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:kNRPkVs8Dedog8pGzKfC0cucEg/8cPbhAV4sWiEeHniuBOADhyhby12lZHl/6shyz1\
-        KjA9z5EpsL696TZAhVPQ=="
+      password: "#42:WHpWKzbIcn787GcU+ZVvJ9TiVe5DxuHCblZcK6xEiZXQPMKnI8UNodJBHfR/x19MGq\
+        S5RqVJN66JXL+Xgwo+dA=="
     description: Enrich ComputerName ONLY with hget from Redis
     groupId: 6iaipC
   - id: redis
@@ -51,8 +51,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:0K+O1D6YtXS4uqUMkoNiP9UB59qDBmCKm7RZhHzAVQymr1QKrZ0rgDfiYngXklNNyt\
-        fb1WF2qFgbzL+9IRQ++w=="
+      password: "#42:QblqF5WaUpj7yK48KLQR8akfhimSODx0hBR/5oqLAEY8PSMzHEGbH4yfUoHO8wsrmZ\
+        j4snGwtac37ZfR/11PMQ=="
     description: Enrich multiple fields with hmget from Redis
     groupId: 6iaipC
   - id: redis
@@ -66,8 +66,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:o2b0nZUB/HAuevu2CLFvsYZfGgB5y8PDLWqNISdWkUdphCuifIhRjCHff3kFJqXEJ8\
-        TLS07decVlL6AneW+61Q=="
+      password: "#42:qkVuI7OCA/kODrVkT48aPCFSozijtBCPMXsT/eV6F8FLHwwoCZrzTZFGahtECL0ttf\
+        JkvPU8zctz61//nw6/yw=="
     description: Enrich ALL fields with hgetall from Redis
     groupId: 6iaipC
   - id: flatten

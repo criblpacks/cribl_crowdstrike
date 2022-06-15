@@ -1,8 +1,8 @@
 event_simpleName,comment
 ChannelVersionRequired,High Volume-Low Value fields-add or remove from list
-CurrentSystemTags
-LightningLatencyInfo
-SensorHeartbeat
+CurrentSystemTags,Fo bar
+LightningLatencyInfo,More Fo
+SensorHeartbeat,BS
 RawBindIP4
 ResourceUtilization
 FalconServiceStatus

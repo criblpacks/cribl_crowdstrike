@@ -1,0 +1,64 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: "NOTE: sampling validation works with current time. Thus, you will see
+        sampled=1 for all events. To truly test, create a datagen, or run the
+        pipeline against real data for a duration"
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Enable when testing. Disable when complete. This is here only to enable
+      pipeline testing from this chained pipeline
+  - id: serde
+    filter: "true"
+    disabled: null
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+      keep:
+        - EventType
+        - cid
+        - AgentIdString
+        - SubjectKeyIdentifier
+        - IssuerCN
+        - IssuerDN
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      add:
+        - value: "`${SubjectKeyIdentifier}:${AgentIdString}:${cid}`"
+          name: __agg_field
+  - id: dynamic_sampling
+    filter: "true"
+    disabled: false
+    conf:
+      mode: log
+      keyExpr: "`${__agg_field}`"
+      samplePeriod: 30
+      minEvents: 2
+      maxSampleRate: 100
+    description: Sample events
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      keep:
+        - _raw*
+        - cribl_pipe
+        - sampled
+        - _time
+      remove:
+        - "*"
+      add: []
+    description: Keep only desired fields

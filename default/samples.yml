@@ -48,3 +48,13 @@ sHOVut:
   numEvents: 341
   modified: 1651718108917
   isPackOnly: true
+6KJUtr:
+  sampleName: Crowdstrike_ExternalAPIEvent.txt
+  created: 1655254946263
+  size: 735275
+  numEvents: 400
+Y8AaZv:
+  sampleName: DNS.txt
+  created: 1655258056909
+  size: 3841278
+  numEvents: 4096
