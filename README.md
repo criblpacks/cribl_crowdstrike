@@ -53,6 +53,13 @@ Optional:
 
 ## Release Notes
 
+### Version 0.62 - 2021-06-14
+- Added ExternalApiEvent Pipeline and chain function
+- Fixed Aggregations in Network Pipeline
+    - Group by fields are now consistent across both functions
+    - Arrays returning single value are converted to single fields
+- Added Auto-timestamp to the core Crowdstrike_General pipeline as a backup to Event Breaker Ruleset
+
 ### Version 0.50 - 2021-05-06
 ---
 In this release, we have added a number of great features. We've goat you covered!

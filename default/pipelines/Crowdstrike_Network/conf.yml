@@ -153,8 +153,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:CtvevVeTYLPBCKQvzGdtYnipDY4VL4q87QX7H8Bmt8kvjjxKxTvOaii27Aj4B9Mk4C\
-        PcPO1Xdp0tX8wyIOVb4A=="
+      password: "#42:JWghKzfmVLzVWRVkpQrJTvDQxtY1g2lYG8A+Lby4t+6ZzPPUq8Zrsd+flDlpZUWNzN\
+        2Fysm/VPsly/IBdbvwew=="
     description: Create key in Redis regardless of traffic direction
     groupId: dlLbUK
   - id: redis
@@ -177,8 +177,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:lq8LTt5+moZI5LZi8r7DdnA/y8YPG8uwJLipJC54djwAgHkyBcNRJd2FZN63rzPMNK\
-        rNmwO3RtkJ9wLkv4rC9A=="
+      password: "#42:HsvWqQlXf3okCYBDHF29pjH/ME+7Zut7iVXhjKcrpuliDQIAVaTHtfVfvHsV22s/m/\
+        jKmRvLOXj7ZGoCdy1lRA=="
     description: Avoiding collisions so lists of simpleNames are accurate. Setting values
       only if setnx was successful
     groupId: dlLbUK
@@ -198,8 +198,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:BaZktqqykf0WI/pKQnf5fD8R2yqCaQO97gOyLOhWosTgyldnIf3Su9bX5axqEvh6E6\
-        SgrUbuRJQpUYpCo8lttw=="
+      password: "#42:2fDFebcaUPndQDf2vN9IghoJyKgQAoOA7fTOr+2M1H9shEDJ5e9U4eH/tE8U9r4UEz\
+        RqLKQFjepAzdob0UBgDA=="
     description: "Avoiding collisions so lists of simpleNames and count are accurate. "
     groupId: dlLbUK
   - id: redis
@@ -216,8 +216,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:piR/cwINazA7H7JROhB8du0X8XVgqhtk6bhpUhrNvqFNhO43G2A8GGHcxgeStt9r0W\
-        WD6PTn7NlHtkVqtu9k4g=="
+      password: "#42:zLk7mfVLypELO7LGf7/56YXVOijnxg7rSLjf0UU5VgVMmwyo86jLGlAUqZz+F/tvxW\
+        DHfo3NVWe9gb4KE+ztnQ=="
     description: Get list of simpleNames being aggregated & time period for aggregation
     groupId: dlLbUK
   - id: redis
@@ -232,8 +232,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:Jumg2cawBlFOq5nl+9XzH6aeUDd3Q5HZPiN0isSDMje694u2tWtviCKQoBp0Gy6mPw\
-        FmgaYavGySm8OEvTxArA=="
+      password: "#42:u4tzfEB0smatRoAN24THEVs8oX98CoE5fvKllMmSFW4SaBMr6IAVVYmj52PwZ1wn1L\
+        O2cMxxWAbW0UuUegq1xQ=="
     description: Delete both keys to start new aggregation period
     groupId: dlLbUK
   - id: drop
