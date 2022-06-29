@@ -27,7 +27,7 @@ routes:
   - id: axEJ0g
     name: default
     final: true
-    disabled: false
+    disabled: true
     pipeline: main
     description: Default
     clones: []

@@ -63,17 +63,6 @@ functions:
     filter: "true"
     disabled: null
     conf:
-      comment: Enable enrichment from Redis. Disable if not using Redis
-  - id: chain
-    filter: "true"
-    disabled: true
-    conf:
-      processor: Inventory_Enrich_FromRedis
-    description: Enrich from Redis
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
       comment: Chain function for different events
   - id: chain
     filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
@@ -81,20 +70,20 @@ functions:
     conf:
       processor: Crowdstrike_Network
     description: Network Events
-    final: true
+    final: false
   - id: chain
     filter: C.Lookup('event_simpleName_Processes.csv').match(_raw.event_simpleName)
     disabled: false
     conf:
       processor: Crowdstrike_Processes
     description: Process & Services
-    final: true
+    final: false
   - id: chain
     filter: _raw.event_simpleName=='DnsRequest'
     disabled: false
     conf:
       processor: Crowdstrike_DNS
-    final: true
+    final: false
     description: DNS Requests
   - id: chain
     filter: _raw.EventType=='Event_ExternalApiEvent'
@@ -102,11 +91,32 @@ functions:
     conf:
       processor: Crowdstrike_ExternalAPIEvent
     description: Event_ExternalApiEvent
-    final: true
-  - id: chain
+    final: false
+  - id: comment
     filter: "true"
+    disabled: null
+    conf:
+      comment: >-
+        Other events filter is a workaround to check if any other pipelines have
+        been processed inside the Crowdstrike_General pipeline.
+
+
+        Redis moved to the end, so we only enrich events that made this far, not pre-aggregation events, and not DNS dropped events.
+  - id: chain
+    filter: "!cribl_pipe"
     disabled: false
     conf:
       processor: Crowdstrike_OtherEvents
     description: Other Events
     final: false
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Enable enrichment from Redis. Disable if not using Redis
+  - id: chain
+    filter: "true"
+    disabled: true
+    conf:
+      processor: Inventory_Enrich_FromRedis
+    description: Enrich from Redis

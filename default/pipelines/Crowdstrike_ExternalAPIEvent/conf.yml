@@ -16,8 +16,8 @@ functions:
       add:
         - name: _raw
           value: JSON.parse(_raw)
-    description: Enable when testing. Disable when complete. This is here only to enable
-      pipeline testing from this chained pipeline
+    description: Enable when testing. Disable when complete. This is here only to
+      enable pipeline testing from this chained pipeline
   - id: serde
     filter: "true"
     disabled: null

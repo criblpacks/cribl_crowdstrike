@@ -53,6 +53,11 @@ Optional:
 
 ## Release Notes
 
+### Version 0.63 - 2021-06-29
+- Moved the Redis enrichment section to the end of the Crowdstrike_General pipeline, so you only enrich events that will sent out, not other ones that are dropped
+- Additional fixes in Network Aggregation pipeline
+- Added a !cribl_pipe filter to the 'Other Events' function to accommodate Redis being moved to the end
+
 ### Version 0.62 - 2021-06-14
 - Added ExternalApiEvent Pipeline and chain function
 - Fixed Aggregations in Network Pipeline
