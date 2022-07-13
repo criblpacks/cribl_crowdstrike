@@ -58,6 +58,10 @@ functions:
         - cribl_pipe
         - sampled
         - _time
+        - source
+        - sourcetype
+        - host
+        - index
       remove:
         - "*"
       add: []

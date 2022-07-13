@@ -49,6 +49,7 @@ functions:
       latestDateAllowed: +1week
       earliestDateAllowed: -420weeks
     groupId: DmApP8
+    description: ContextTimestamp field
   - id: comment
     filter: "true"
     disabled: null
