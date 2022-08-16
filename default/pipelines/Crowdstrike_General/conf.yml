@@ -3,9 +3,24 @@ groups:
   DmApP8:
     name: Timestamp Fix
     description: Known Events have timestamp or ContextTimeStamp
-    index: 2
+    index: 6
 asyncFuncTimeout: 1000
 functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Parse the event as JSON ONLY IF it's truly a JSON event, otherwise, it
+        _raw will become empty
+  - id: eval
+    filter: "!JSON.parse(_raw)"
+    disabled: null
+    conf:
+      add:
+        - name: nonJSON
+          value: "'true'"
+    final: true
+    description: Stop parsing non-JSON events
   - id: eval
     filter: "true"
     disabled: false
@@ -13,6 +28,30 @@ functions:
       add:
         - name: _raw
           value: JSON.parse(_raw)
+    description: JSON parse _raw
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Splunk Destination Fields
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: source
+          value: "source ? source : 'cribl_crowdstrike_s3'"
+        - name: sourcetype
+          value: "_raw.event_simpleName && !sourcetype ?
+            'crowdstrike:fdr:'+_raw.event_simpleName : sourcetype"
+        - value: "_raw.EventType && !sourcetype ? 'crowdstrike:fdr:'+_raw.EventType :
+            sourcetype"
+          name: sourcetype
+        - name: host
+          value: "host ? host : C.os.hostname()"
+        - name: index
+          value: "index ? index : 'main'"
+    description: Splunk Destination Fields
   - id: comment
     filter: "true"
     disabled: null
@@ -60,11 +99,12 @@ functions:
     disabled: false
     conf: {}
     final: true
+    description: Drop unwanted events
   - id: comment
     filter: "true"
     disabled: null
     conf:
-      comment: Chain function for different events
+      comment: Chain functions for different event types
   - id: chain
     filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
     disabled: false
@@ -93,6 +133,18 @@ functions:
       processor: Crowdstrike_ExternalAPIEvent
     description: Event_ExternalApiEvent
     final: false
+  - id: chain
+    filter: _raw.event_simpleName=='ScriptControlScanInfo'
+    disabled: null
+    conf:
+      processor: Crowdstrike_ScriptControlScanInfo
+    description: ScriptControlScanInfo Events
+  - id: chain
+    filter: _raw.ScriptContentBytes
+    disabled: null
+    conf:
+      processor: Crowdstrike_HEX_ScriptContentBytes
+    description: Hex Code in ScriptContentBytes field
   - id: comment
     filter: "true"
     disabled: null

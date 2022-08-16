@@ -9,6 +9,12 @@ functions:
       comment: "NOTE: sampling validation works with current time. Thus, you will see
         sampled=1 for all events. To truly test, create a datagen, or run the
         pipeline against real data for a duration"
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Enable Eval function ONLY for testing within
+        Crowdstrike_ExternalAPIEvents pipeline. Disable before exiting
   - id: eval
     filter: "true"
     disabled: true
@@ -32,6 +38,7 @@ functions:
         - SubjectKeyIdentifier
         - IssuerCN
         - IssuerDN
+    description: Extract sampling fields
   - id: eval
     filter: "true"
     disabled: false
@@ -39,6 +46,7 @@ functions:
       add:
         - value: "`${SubjectKeyIdentifier}:${AgentIdString}:${cid}`"
           name: __agg_field
+    description: Create one field for sampling
   - id: dynamic_sampling
     filter: "true"
     disabled: false

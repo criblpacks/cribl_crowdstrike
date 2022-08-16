@@ -59,6 +59,12 @@ Optional:
 
 ## Release Notes
 
+### Version 0.70 - 2022-08-14
+- Updated Event breakers to be as large 768Kbytes and the breaker to include the beginning of a JSON event. Many events broke since the ScriptContent or ScriptedContentBytes made the events exorbitantly large. And those fields often included new line characters.
+- Updated the first Eval function in the Crowdstrike_General pipeline to NOT perform JSON.parse if the event is not JSON
+- Introduced chained pipelines for other high volume offender including ScriptControlScanInfo event_simpleName, and events with a ScriptContentBytes field
+- Added EndOfProcess to list of events to drop, as found at multiple customers
+
 ### Version 0.65 - 2022-07-13
 - Removed value==0 from filter of fields to drop in various pipelines
 - Added new route for non-streaming events and no Redis

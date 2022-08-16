@@ -1,0 +1,92 @@
+output: default
+streamtags: []
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Convert Windows ScriptContentBytes field to ASCII & remove fields with
+        password
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: TURN OFF next Eval function before exiting. Turn on only when testing
+        within this pipeline
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: ONLY Enable if testing this chained pipeline within here. Disable
+      when complete
+  - id: mask
+    filter: "true"
+    disabled: null
+    conf:
+      rules:
+        - matchRegex: /(\-|\s)(password(|\\\"|\s)([^\"\s\\]+))(|\/|\\\"|\s|\"\,)/
+          replaceExpr: "'-password XXXX '"
+        - matchRegex: /(-p\s+)(\S+)\s\-\-/
+          replaceExpr: "'-p XXXX --'"
+        - matchRegex: /(-P\s+)(\S+)\s(\-U)/
+          replaceExpr: "'-P XXXX -U'"
+        - replaceExpr: "'-P XXXX -t     '"
+          matchRegex: /(-P\s+)(\S+)\s(\-t)/
+        - replaceExpr: "'-P XXXX -c '"
+          matchRegex: /(-P\s+)(\S+)\s(\-c)/
+        - matchRegex: /(-P\s+)(\S+)\s(\-m)/
+          replaceExpr: "'-P XXXX -m '"
+      fields:
+        - _raw
+      depth: 5
+    description: Example password masking
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: The next EVAL and Mask functions are used to Decode Hex to ASCII for
+        ScriptContentBytes
+  - id: eval
+    filter: _raw.ScriptContentBytes
+    disabled: false
+    conf:
+      add:
+        - name: _raw.ScriptContentBytes
+          value: _raw.ScriptContentBytes.replace(/([a-fA-F0-9]{2})/g,'0x$&')
+    description: Eval to convert ScriptContentBytes to proper HEX format and add 0x
+  - id: mask
+    filter: _raw.ScriptContentBytes
+    disabled: false
+    conf:
+      rules:
+        - matchRegex: /(0x[a-fA-F0-9]{2})/g
+          replaceExpr: "`${String.fromCharCode(C.Decode.hex(g1))}`"
+      fields:
+        - _raw.ScriptContentBytes
+      depth: 5
+    description: This Function decodes the HEX created from the above EVAL
+  - id: eval
+    filter: _raw.ScriptContentBytes
+    disabled: false
+    conf:
+      add:
+        - name: _raw.ScriptContentBytes
+          value: _raw.ScriptContentBytes.replace(/[^a-zA-Z0-9]/g,'_')
+    description: This Eval cleans up the spaces in ASCII conversion
+  - id: mask
+    filter: _raw.ScriptContentBytes
+    disabled: false
+    conf:
+      rules:
+        - matchRegex: /__+/g
+          replaceExpr: "' '"
+      fields:
+        - _raw.ScriptContentBytes
+      depth: 5
+    description: Replace multiple underscores with one space
+description: Convert Hex field to ASCII

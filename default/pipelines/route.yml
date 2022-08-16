@@ -22,7 +22,7 @@ routes:
     clones: []
     enableOutputExpression: false
     outputExpression: null
-    filter: source.indexOf('/data/') > -1
+    filter: source.indexOf('/data/') > -1 || index=='crowdstrike_cribl'
     output: default
   - id: baUzTu
     name: Crowdstrike_Inventory_Events_Passthru

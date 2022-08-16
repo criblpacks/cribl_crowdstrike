@@ -1,0 +1,40 @@
+output: default
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Enable when testing in this chained pipeline only. Disable before
+      saving, as JSON.parse happens in Crowdstrike General pipeline
+  - id: mask
+    filter: _raw.ScriptContent.includes('  ')
+    disabled: null
+    conf:
+      rules:
+        - matchRegex: /\s+/g
+          replaceExpr: "' '"
+      fields:
+        - _raw.ScriptContent
+      depth: 5
+    description: Remove whitespaces from ScriptContent field
+  - id: serde
+    filter: "true"
+    disabled: false
+    conf:
+      mode: reserialize
+      type: json
+      srcField: _raw
+      remove:
+        - Config*
+        - Entitlements
+        - name
+        - Timeout
+        - EffectiveTransmissionClass
+      fieldFilterExpr: " value && value !== 'null' && value !== null"
+      keep: []
+    description: Remove duplicate fields and some uninteresting fields

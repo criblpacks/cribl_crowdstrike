@@ -1,13 +1,16 @@
-event_simpleName,comment
-ChannelVersionRequired,High Volume-Low Value fields-add or remove from list
-CurrentSystemTags,Fo bar
-LightningLatencyInfo,More Fo
-SensorHeartbeat,BS
+event_simpleName
+ChannelVersionRequired
+CurrentSystemTags
+LightningLatencyInfo
+SensorHeartbeat
 RawBindIP4
 ResourceUtilization
 FalconServiceStatus
 PeVersionInfo
 FirmwareRegionMeasured
-SpotlightEntityBatch,
-ProvisioningChannelVersionRequired,
-ConfigStateHash,
+SpotlightEntityBatch
+SpotlightEntityBatchHeader
+SpotlightEntitySystemState
+ProvisioningChannelVersionRequired
+ConfigStateUpdate
+EndOfProcess

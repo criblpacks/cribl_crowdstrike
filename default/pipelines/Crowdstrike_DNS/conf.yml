@@ -2,6 +2,12 @@ output: default
 groups: {}
 asyncFuncTimeout: 1000
 functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Enable the first eval function only if testing this pipeline directly,
+        rather than testing within Crowdstrike_General
   - id: eval
     filter: "!Array.isArray(_raw)"
     disabled: true
@@ -9,7 +15,7 @@ functions:
       add:
         - name: _raw
           value: JSON.parse(_raw)
-    description: Enable when directly testing this pipeline. Disable when complete
+    description: Enable to test within DNS pipeline ONLY
   - id: serde
     filter: "true"
     disabled: false
@@ -45,7 +51,7 @@ functions:
       add:
         - value: C.lookup('majestic_million-rootdomains-100k.csv','Domain').match(DomainL2)
           name: L2Lookup
-    description: Alternative for multi-stage lookup
+    description: "Alternative for multi-stage lookup. KEEP DISABLED. "
   - id: lookup
     filter: DomainName!='wpad'
     disabled: false

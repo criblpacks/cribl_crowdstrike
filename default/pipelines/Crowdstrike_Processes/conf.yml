@@ -16,4 +16,4 @@ functions:
         - Timeout
       fieldFilterExpr: value && value != null && value != 'null'
       keep: []
-    description: Remove noisy fields
+    description: Remove noisy, duplicative, null fields

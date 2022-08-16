@@ -1,0 +1,22 @@
+output: default
+streamtags: []
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: match_net
+          value: C.LookupRegex('event_simpleName_NetworkEvents.csv','event_simpleName').match(_raw)
+        - name: match_drop
+          value: C.LookupRegex('event_simpleNames_DROP.csv','event_simpleName').match(_raw)
+        - name: match_process
+          value: C.LookupRegex('event_simpleName_Processes.csv','event_simpleName').match(_raw)
+        - name: match_dns
+          value: _raw.includes('"event_simpleName":"DnsRequest"')
+        - name: match_api
+          value: _raw.includes('"EventType":"Event_ExternalApiEvent"')
+        - name: match_chassis
+          value: _raw.includes('"ChassisType":"Other"')

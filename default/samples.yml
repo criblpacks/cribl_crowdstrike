@@ -63,3 +63,18 @@ Y8AaZv:
   created: 1656544124694
   size: 633601
   numEvents: 775
+chPOVB:
+  sampleName: ScriptContentBytes.txt
+  created: 1660141179935
+  size: 22872
+  numEvents: 1
+ubyC1Y:
+  sampleName: ScriptControlScanInfo.log
+  created: 1660142598346
+  size: 186184
+  numEvents: 89
+pBsmvb:
+  sampleName: ScriptControlScanInfo_Large.log
+  created: 1660143923143
+  size: 136420
+  numEvents: 28

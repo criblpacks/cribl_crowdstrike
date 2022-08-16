@@ -2,14 +2,14 @@ output: default
 groups:
   lYiMNr:
     name: Native Aggregation
-    description: Enable to replace raw events with aggregation events for Network
-      Connect Events
+    description: "A: Aggregate via native Cribl function"
     disabled: false
-    index: 4
+    index: 5
   dlLbUK:
     name: Redis Aggregation
-    index: 6
+    index: 7
     disabled: true
+    description: "B: Aggregate via Redis"
 asyncFuncTimeout: 1000
 functions:
   - id: serde
@@ -30,6 +30,12 @@ functions:
         - timestamp
         - event_platform
     description: Agg & Filter prep
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: DROP events if remote host is the same as local host (i.e. app talking
+        to another app on the same host)
   - id: drop
     filter: RemoteAddressIP4.length>0 && LocalAddressIP4.length>0 &&
       RemoteAddressIP4 == LocalAddressIP4
@@ -68,6 +74,10 @@ functions:
         - RemoteAdd*
         - aid*
         - Protocol
+        - index
+        - sourcetype
+        - host
+        - source
       add: []
     groupId: lYiMNr
     description: LocalAddress is likely the server, since port is lower. Aggregate
@@ -94,10 +104,20 @@ functions:
         - aid*
         - Remote*
         - Protocol
+        - index
+        - sourcetype
+        - host
+        - source
       add: []
     groupId: lYiMNr
     description: RemoteAddress is likely the server, since port is lower. Aggregate
       on RemotePort, collect values of LocalPort
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: If values(xxx) returns array of 1 value, flatter the field
+    groupId: lYiMNr
   - id: eval
     filter: "true"
     disabled: false
@@ -125,6 +145,10 @@ functions:
         - "!_time"
         - "!__*"
         - "!_raw"
+        - "!sourcetype"
+        - "!source"
+        - "!host"
+        - "!index"
         - "*"
     groupId: lYiMNr
   - id: comment
@@ -176,8 +200,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:PF6diadTv1jT0zyKb7whe2XbUmnih5SAdx62okhepENWObQjnu+rAAeiUxN/CpTi\
-        +LgxlvHzsxmoSE6uPb8OUA=="
+      password: "#42:wyZwuzEU3jx5pmKNTgzmuDizu0mMAIxpkcPTgQrUWNYvY7disrt2o3MTIdU/m7pd\
+        h26+2ydU6M94pRRfY48/XQ=="
     description: Create key in Redis regardless of traffic direction
     groupId: dlLbUK
   - id: redis
@@ -200,8 +224,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:Ym6odpG1LixiGYB11DaCaThnEoao2OzEZyseqFzCfPWgrhlW71mZUDQwKTeqHoPY\
-        nTSi677/yhYbaJht/hsKzQ=="
+      password: "#42:2+f7xq4WQBEYEcQhSGGXNO8SXLypBbNqsfHkn5qiYHRBC0HKo6O6z3rq/jeYeAiA\
+        AnwWC1qlYMJZj9zdhcs5Nw=="
     description: Avoiding collisions so lists of simpleNames are accurate. Setting
       values only if setnx was successful
     groupId: dlLbUK
@@ -221,8 +245,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:QQ55j1ma4WxqPQoNd9IbVZwjkCGcQ6fIV5nI0JmvBP+Y64ftZ8/WkPcL74XzIU/j\
-        N9SzXiMinL8Y7PKPt/emtw=="
+      password: "#42:yds++p2yocWZUSaPkC3sWPz24rvprND/nesQkj5bXpkrk/lg/U69edBb8+Go+cJj\
+        OI+kfdvqqVKicY3bmRQ50A=="
     description: "Avoiding collisions so lists of simpleNames and count are accurate. "
     groupId: dlLbUK
   - id: redis
@@ -239,8 +263,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:++5CIa38y5Dq2EZpPJWEkd82fNmX7X9yY8syV+Knjeydei1/wV5L+8t6QPtXi9lG\
-        TlrWUxHXwhhHVXAWP2Ns0Q=="
+      password: "#42:Z65Nk9/aZE6FsVXSYIptoziyzOzeyrU443F+RSXOCO+9MdUYMl+VC/7ERFPFDn/D\
+        sv/0bq6C1HYeCsZ4nq9yYQ=="
     description: Get list of simpleNames being aggregated & time period for aggregation
     groupId: dlLbUK
   - id: redis
@@ -255,8 +279,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:YM8n/Hv70g+TApeldcYjk9LZ2eDMsjU8PNV/MQi0q6oo/2zDOjU03yrPgIsOMnVp\
-        xIGPnoAimdG48gyIxSrLnw=="
+      password: "#42:3lL9Y8LRP1apHaejJRKGWHSIU9ztgSO+vXY57WOgdh45mbDXME+1m9ZI62wABGBD\
+        6kqDNniHKuMmZCA2ckccEQ=="
     description: Delete both keys to start new aggregation period
     groupId: dlLbUK
   - id: drop
