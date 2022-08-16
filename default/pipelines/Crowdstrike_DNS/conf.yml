@@ -2,23 +2,9 @@ output: default
 groups: {}
 asyncFuncTimeout: 1000
 functions:
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: Enable the first eval function only if testing this pipeline directly,
-        rather than testing within Crowdstrike_General
-  - id: eval
-    filter: "!Array.isArray(_raw)"
-    disabled: true
-    conf:
-      add:
-        - name: _raw
-          value: JSON.parse(_raw)
-    description: Enable to test within DNS pipeline ONLY
   - id: serde
-    filter: "true"
-    disabled: false
+    filter: "!event_simpleName"
+    disabled: null
     conf:
       mode: extract
       type: json
@@ -27,6 +13,7 @@ functions:
       keep:
         - event_simpleName
         - DomainName
+        - CNAMERecords
     description: Prep event if simplename not present
   - id: eval
     filter: DomainName!='wpad'
@@ -34,15 +21,15 @@ functions:
     conf:
       add:
         - value: DomainName.split(".")
-          name: __DomainArray
-        - name: __DomainArray
-          value: __DomainArray.reverse()
-        - name: __DomainL2
-          value: __DomainArray[1]+'.'+__DomainArray[0]
-        - name: __DomainL3
-          value: __DomainArray[2]+'.'+__DomainL2
-        - name: __DomainL4
-          value: __DomainArray[3]+'.'+__DomainL3
+          name: DomainArray
+        - name: DomainArray
+          value: DomainArray.reverse()
+        - name: DomainL2
+          value: DomainArray[1]+'.'+DomainArray[0]
+        - name: DomainL3
+          value: DomainArray[2]+'.'+DomainL2
+        - name: DomainL4
+          value: DomainArray[3]+'.'+DomainL3
     description: Split DomainName, exclude wpad
   - id: eval
     filter: DomainName!='wpad'
@@ -51,7 +38,7 @@ functions:
       add:
         - value: C.lookup('majestic_million-rootdomains-100k.csv','Domain').match(DomainL2)
           name: L2Lookup
-    description: "Alternative for multi-stage lookup. KEEP DISABLED. "
+    description: Alternative for lookup
   - id: lookup
     filter: DomainName!='wpad'
     disabled: false
@@ -60,14 +47,14 @@ functions:
       reloadPeriodSec: 60
       addToEvent: false
       inFields:
-        - eventField: __DomainL4
+        - eventField: DomainL4
           lookupField: Domain
       ignoreCase: false
       matchType: first
       file: majestic_million_100k.csv
       outFields:
         - lookupField: GlobalRank
-          eventField: __L4
+          eventField: L4
           defaultValue: NA
     description: Is domain a top 100K Level 4
   - id: lookup
@@ -78,14 +65,14 @@ functions:
       reloadPeriodSec: 60
       addToEvent: false
       inFields:
-        - eventField: __DomainL3
+        - eventField: DomainL3
           lookupField: Domain
       ignoreCase: false
       matchType: first
       file: majestic_million_100k.csv
       outFields:
         - lookupField: GlobalRank
-          eventField: __L3
+          eventField: L3
           defaultValue: NA
     description: Is domain a top 100K Level 3
   - id: lookup
@@ -96,18 +83,18 @@ functions:
       reloadPeriodSec: 60
       addToEvent: false
       inFields:
-        - eventField: __DomainL2
+        - eventField: DomainL2
           lookupField: Domain
       ignoreCase: false
       matchType: first
       file: majestic_million_100k.csv
       outFields:
         - lookupField: GlobalRank
-          eventField: __L2
+          eventField: L2
           defaultValue: NA
     description: Is domain a top 100K Level 2
   - id: drop
-    filter: "!(__L2 == 'NA' && __L3 == 'NA' && __L4 == 'NA')"
+    filter: "!(L2 == 'NA' && L3 == 'NA' && L4 == 'NA')"
     disabled: false
     conf: {}
     description: Lax filter since Majestic Million has mostly root level domains
@@ -116,14 +103,17 @@ functions:
     disabled: false
     conf:
       keep:
-        - _raw*
+        - _raw
         - cribl*
         - _time
-        - source
-        - sourcetype
-        - host
-        - index
       remove:
         - "*"
-      add: []
     description: Drop all unnecessary fields
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: JSON Parse
