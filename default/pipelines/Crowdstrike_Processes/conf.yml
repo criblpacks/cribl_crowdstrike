@@ -14,14 +14,6 @@ functions:
         - Entitlements
         - name
         - Timeout
-      fieldFilterExpr: value != 0 && value != null && value != 'null'
+      fieldFilterExpr: value && value != null && value != 'null'
       keep: []
-    description: Remove noisy fields
-  - id: eval
-    filter: "true"
-    disabled: false
-    conf:
-      add:
-        - name: _raw
-          value: JSON.parse(_raw)
-    description: Reduce size
+    description: Remove noisy, duplicative, null fields

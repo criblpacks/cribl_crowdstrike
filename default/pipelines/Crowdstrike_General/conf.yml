@@ -1,7 +1,26 @@
 output: default
-groups: {}
+groups:
+  DmApP8:
+    name: Timestamp Fix
+    description: Known Events have timestamp or ContextTimeStamp
+    index: 6
 asyncFuncTimeout: 1000
 functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Parse the event as JSON ONLY IF it's truly a JSON event, otherwise, it
+        _raw will become empty
+  - id: eval
+    filter: "!JSON.parse(_raw)"
+    disabled: null
+    conf:
+      add:
+        - name: nonJSON
+          value: "'true'"
+    final: true
+    description: Stop parsing non-JSON events
   - id: eval
     filter: "true"
     disabled: false
@@ -9,6 +28,67 @@ functions:
       add:
         - name: _raw
           value: JSON.parse(_raw)
+    description: JSON parse _raw
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Splunk Destination Fields
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - name: source
+          value: "source ? source : 'cribl_crowdstrike_s3'"
+        - name: sourcetype
+          value: "_raw.event_simpleName && !sourcetype ?
+            'crowdstrike:fdr:'+_raw.event_simpleName : sourcetype"
+        - value: "_raw.EventType && !sourcetype ? 'crowdstrike:fdr:'+_raw.EventType :
+            sourcetype"
+          name: sourcetype
+        - name: host
+          value: "host ? host : C.os.hostname()"
+        - name: index
+          value: "index ? index : 'main'"
+    description: Splunk Destination Fields
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Timestamp fixing based on event content. In place incase Event Breakers
+        arent imported
+  - id: auto_timestamp
+    filter: _raw.timestamp.length > 0 && !_raw.ContextTimeStamp
+    disabled: false
+    conf:
+      srcField: _raw.timestamp
+      dstField: _time
+      defaultTimezone: utc
+      timeExpression: time.getTime() / 1000
+      offset: 0
+      maxLen: 150
+      defaultTime: now
+      latestDateAllowed: +1week
+      earliestDateAllowed: -420weeks
+      timestamps: []
+    description: timestamp field if present
+    groupId: DmApP8
+  - id: auto_timestamp
+    filter: _raw.ContextTimeStamp.length > 0
+    disabled: false
+    conf:
+      srcField: _raw. ContextTimeStamp
+      dstField: _time
+      defaultTimezone: utc
+      timeExpression: time.getTime() / 1000
+      offset: 0
+      maxLen: 150
+      defaultTime: now
+      latestDateAllowed: +1week
+      earliestDateAllowed: -420weeks
+    groupId: DmApP8
+    description: ContextTimestamp field
   - id: comment
     filter: "true"
     disabled: null
@@ -19,6 +99,69 @@ functions:
     disabled: false
     conf: {}
     final: true
+    description: Drop unwanted events
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Chain functions for different event types
+  - id: chain
+    filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
+    disabled: false
+    conf:
+      processor: Crowdstrike_Network
+    description: Network Events
+    final: false
+  - id: chain
+    filter: C.Lookup('event_simpleName_Processes.csv').match(_raw.event_simpleName)
+    disabled: false
+    conf:
+      processor: Crowdstrike_Processes
+    description: Process & Services
+    final: false
+  - id: chain
+    filter: _raw.event_simpleName=='DnsRequest'
+    disabled: false
+    conf:
+      processor: Crowdstrike_DNS
+    final: false
+    description: DNS Requests
+  - id: chain
+    filter: _raw.EventType=='Event_ExternalApiEvent'
+    disabled: false
+    conf:
+      processor: Crowdstrike_ExternalAPIEvent
+    description: Event_ExternalApiEvent
+    final: false
+  - id: chain
+    filter: _raw.event_simpleName=='ScriptControlScanInfo'
+    disabled: null
+    conf:
+      processor: Crowdstrike_ScriptControlScanInfo
+    description: ScriptControlScanInfo Events
+  - id: chain
+    filter: _raw.ScriptContentBytes
+    disabled: null
+    conf:
+      processor: Crowdstrike_HEX_ScriptContentBytes
+    description: Hex Code in ScriptContentBytes field
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: >-
+        Other events filter is a workaround to check if any other pipelines have
+        been processed inside the Crowdstrike_General pipeline.
+
+
+        Redis moved to the end, so we only enrich events that made this far, not pre-aggregation events, and not DNS dropped events.
+  - id: chain
+    filter: "!cribl_pipe"
+    disabled: false
+    conf:
+      processor: Crowdstrike_OtherEvents
+    description: Other Events
+    final: false
   - id: comment
     filter: "true"
     disabled: null
@@ -30,36 +173,3 @@ functions:
     conf:
       processor: Inventory_Enrich_FromRedis
     description: Enrich from Redis
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: Chain function for different events
-  - id: chain
-    filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
-    disabled: false
-    conf:
-      processor: Crowdstrike_Network
-    description: Network Events
-    final: true
-  - id: chain
-    filter: C.Lookup('event_simpleName_Processes.csv').match(_raw.event_simpleName)
-    disabled: false
-    conf:
-      processor: Crowdstrike_Processes
-    description: Process & Services
-    final: true
-  - id: chain
-    filter: _raw.event_simpleName=='DnsRequest'
-    disabled: false
-    conf:
-      processor: Crowdstrike_DNS
-    final: true
-    description: DNS Requests
-  - id: chain
-    filter: "true"
-    disabled: false
-    conf:
-      processor: Crowdstrike_OtherEvents
-    description: Other Events
-    final: false

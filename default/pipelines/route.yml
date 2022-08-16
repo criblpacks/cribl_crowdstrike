@@ -2,43 +2,43 @@ id: default
 groups: {}
 comments: []
 routes:
-  - id: iHcMIa
-    name: event_simpleNames_To_Drop
-    final: true
-    disabled: true
-    pipeline: devnull
-    description: Drop events matching the event_simpleNames in the corresponding lookup file
-    clones: []
-    enableOutputExpression: false
-    outputExpression: null
-    filter: C.Lookup('event_simpleNames_DROP.csv').match(event_simpleName)
-    output: default
   - id: default
-    name: Redis_Inventory_Population
+    name: Crowdstrike_aimaster_Inventory_Redis_Population
     final: true
     disabled: true
     pipeline: Inventory_Events_Redis
-    description: ""
+    description: Inventory logs routed to Redis for enrichment
     clones: []
     enableOutputExpression: false
     outputExpression: null
     filter: source.indexOf('fdrv2/aimaster') > -1
     output: default
   - id: ZRmszg
-    name: All_Other_Crowdstrike_Events
+    name: Crowdstrike_Streaming_Events
     final: true
     disabled: false
     pipeline: Crowdstrike_General
-    description: ""
+    description: Streaming Crowdstrike Events
     clones: []
     enableOutputExpression: false
     outputExpression: null
-    filter: source.indexOf('/data/') > -1
+    filter: source.indexOf('/data/') > -1 || index=='crowdstrike_cribl'
+    output: default
+  - id: baUzTu
+    name: Crowdstrike_Inventory_Events_Passthru
+    final: true
+    disabled: false
+    pipeline: passthru
+    description: Inventory (aka discovery events) passthru
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('/data/') == -1
     output: default
   - id: axEJ0g
     name: default
     final: true
-    disabled: false
+    disabled: true
     pipeline: main
     description: Default
     clones: []

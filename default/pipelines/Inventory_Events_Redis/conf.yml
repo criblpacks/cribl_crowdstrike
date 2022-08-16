@@ -31,8 +31,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:Y80+d4B1jjTIK+QsKddYDdxPJoU78he2wotABRBiYROLvWEu2AvqO8OdyXbNFAaF9B\
-        vZmcjCaIiLHggPGIyo7A=="
+      password: "#42:n79WQ5rPm8Zv24bsJUDrFIwsH9VypFCjhtvpF7FhybJ2Q0rWXmZsDbfsJ52q4cKq\
+        kwdFzrwBPeOTzrHlqUFjbg=="
     description: " source.includes('aidmaster') || source.includes('inventory') ||
       ComputerName.length > 0"
   - id: drop
