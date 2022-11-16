@@ -9,42 +9,21 @@ functions:
       comment: "NOTE: sampling validation works with current time. Thus, you will see
         sampled=1 for all events. To truly test, create a datagen, or run the
         pipeline against real data for a duration"
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: Enable Eval function ONLY for testing within
-        Crowdstrike_ExternalAPIEvents pipeline. Disable before exiting
   - id: eval
-    filter: "true"
-    disabled: true
+    filter: typeof _raw !== 'object'
+    disabled: false
     conf:
       add:
         - name: _raw
           value: JSON.parse(_raw)
     description: Enable when testing. Disable when complete. This is here only to
       enable pipeline testing from this chained pipeline
-  - id: serde
-    filter: "true"
-    disabled: null
-    conf:
-      mode: extract
-      type: json
-      srcField: _raw
-      keep:
-        - EventType
-        - cid
-        - AgentIdString
-        - SubjectKeyIdentifier
-        - IssuerCN
-        - IssuerDN
-    description: Extract sampling fields
   - id: eval
     filter: "true"
     disabled: false
     conf:
       add:
-        - value: "`${SubjectKeyIdentifier}:${AgentIdString}:${cid}`"
+        - value: "`${_raw.SubjectKeyIdentifier}:${_raw.AgentIdString}:${_raw.cid}`"
           name: __agg_field
     description: Create one field for sampling
   - id: dynamic_sampling
@@ -57,20 +36,3 @@ functions:
       minEvents: 2
       maxSampleRate: 100
     description: Sample events
-  - id: eval
-    filter: "true"
-    disabled: false
-    conf:
-      keep:
-        - _raw*
-        - cribl_pipe
-        - sampled
-        - _time
-        - source
-        - sourcetype
-        - host
-        - index
-      remove:
-        - "*"
-      add: []
-    description: Keep only desired fields

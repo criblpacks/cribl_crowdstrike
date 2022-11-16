@@ -2,9 +2,56 @@ output: default
 groups: {}
 asyncFuncTimeout: 1000
 functions:
-  - id: serde
+  - id: eval
+    filter: typeof _raw !== 'object'
+    disabled: null
+    conf:
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Convert to JSON if not already an object
+  - id: comment
     filter: "true"
     disabled: null
+    conf:
+      comment: Enable next function ONLY WHEN TESTING to expose the fields more easily
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: process_cmdline
+          value: _raw.CommandLine
+        - name: process_hash
+          value: _raw.SHA256HashData
+        - name: process_simpleName
+          value: _raw.event_simpleName
+    description: ENABLE TEMPORARILY to see process & sha256 hashes
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: DROP matched process hashes (recommended)
+  - id: drop
+    filter: C.LookupRegex('Process_SHA256HashData_Drop.csv','SHA256Hash').match(_raw.SHA256HashData)
+    disabled: false
+    conf: {}
+    description: Drop process events based on their hash (preferred)
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: |-
+        OPTIONAL DROP based on commandline regular expression matching.
+        Pursue process hash matching instead (enabled by default)
+  - id: drop
+    filter: C.LookupRegex('Process_cmdline_Drop.csv').match(_raw.CommandLine)
+    disabled: true
+    conf: {}
+    description: OPTIONAL Drop events with unwanted CommandLine Regular Expression values
+  - id: serde
+    filter: "true"
+    disabled: false
     conf:
       mode: reserialize
       type: json
@@ -16,4 +63,4 @@ functions:
         - Timeout
       fieldFilterExpr: value && value != null && value != 'null'
       keep: []
-    description: Remove noisy, duplicative, null fields
+    description: Remove null fields

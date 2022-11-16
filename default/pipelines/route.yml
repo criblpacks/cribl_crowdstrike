@@ -22,10 +22,11 @@ routes:
     clones: []
     enableOutputExpression: false
     outputExpression: null
-    filter: source.indexOf('/data/') > -1 || index=='crowdstrike_cribl'
+    filter: "source.indexOf('/data/') > -1 "
     output: default
   - id: baUzTu
-    name: Crowdstrike_Inventory_Events_Passthru
+    name: Crowdstrike_Inventory_Events_Passthru (Enable if inventory events need to
+      go to destination)
     final: true
     disabled: false
     pipeline: passthru
@@ -33,7 +34,7 @@ routes:
     clones: []
     enableOutputExpression: false
     outputExpression: null
-    filter: source.indexOf('/data/') == -1
+    filter: source.indexOf('/fdrv2/') == -1
     output: default
   - id: axEJ0g
     name: default

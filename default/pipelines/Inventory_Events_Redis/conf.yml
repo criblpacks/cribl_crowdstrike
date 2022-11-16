@@ -3,13 +3,18 @@ groups: {}
 asyncFuncTimeout: 1000
 functions:
   - id: eval
-    filter: "true"
+    filter: typeof _raw !== 'object'
     disabled: null
     conf:
       add:
         - name: _raw
           value: JSON.parse(_raw)
     description: Prep events as JSON
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Adding Redis Keys; Setting expire time to 3 days (259200 seconds)
   - id: redis
     filter: "true"
     disabled: null
@@ -27,14 +32,20 @@ functions:
         - outField: __expire_results
           command: expire
           keyExpr: "'aid.'+_raw.aid"
-          argsExpr: "600"
+          argsExpr: "259200"
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:n79WQ5rPm8Zv24bsJUDrFIwsH9VypFCjhtvpF7FhybJ2Q0rWXmZsDbfsJ52q4cKq\
-        kwdFzrwBPeOTzrHlqUFjbg=="
+      password: "#42:Um7YKSguT0ZD8SnyucNnjDybLxiYN6y06TSTPnQCLCl64qJVzW7cqctKld35URrp\
+        GJ++z87WnaHG0zlqpsuzXQ=="
     description: " source.includes('aidmaster') || source.includes('inventory') ||
       ComputerName.length > 0"
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: OPTIONALLY drop events within the pipeline
   - id: drop
     filter: "true"
     disabled: true

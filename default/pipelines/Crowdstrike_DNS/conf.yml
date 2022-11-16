@@ -2,38 +2,20 @@ output: default
 groups: {}
 asyncFuncTimeout: 1000
 functions:
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: Enable the first eval function only if testing this pipeline directly,
-        rather than testing within Crowdstrike_General
   - id: eval
-    filter: "!Array.isArray(_raw)"
-    disabled: true
+    filter: typeof _raw !== 'object'
+    disabled: false
     conf:
       add:
         - name: _raw
           value: JSON.parse(_raw)
     description: Enable to test within DNS pipeline ONLY
-  - id: serde
-    filter: "true"
-    disabled: false
-    conf:
-      mode: extract
-      type: json
-      srcField: _raw
-      fields: []
-      keep:
-        - event_simpleName
-        - DomainName
-    description: Prep event if simplename not present
   - id: eval
-    filter: DomainName!='wpad'
+    filter: _raw.DomainName!='wpad'
     disabled: false
     conf:
       add:
-        - value: DomainName.split(".")
+        - value: _raw.DomainName.split(".")
           name: __DomainArray
         - name: __DomainArray
           value: __DomainArray.reverse()
@@ -49,7 +31,7 @@ functions:
     disabled: true
     conf:
       add:
-        - value: C.lookup('majestic_million-rootdomains-100k.csv','Domain').match(DomainL2)
+        - value: C.lookup('majestic_million_5k.csv','Domain').match(__DomainL2)
           name: L2Lookup
     description: "Alternative for multi-stage lookup. KEEP DISABLED. "
   - id: lookup
@@ -64,7 +46,7 @@ functions:
           lookupField: Domain
       ignoreCase: false
       matchType: first
-      file: majestic_million_100k.csv
+      file: majestic_million_5k.csv
       outFields:
         - lookupField: GlobalRank
           eventField: __L4
@@ -82,7 +64,7 @@ functions:
           lookupField: Domain
       ignoreCase: false
       matchType: first
-      file: majestic_million_100k.csv
+      file: majestic_million_5k.csv
       outFields:
         - lookupField: GlobalRank
           eventField: __L3
@@ -100,7 +82,7 @@ functions:
           lookupField: Domain
       ignoreCase: false
       matchType: first
-      file: majestic_million_100k.csv
+      file: majestic_million_5k.csv
       outFields:
         - lookupField: GlobalRank
           eventField: __L2
@@ -111,19 +93,3 @@ functions:
     disabled: false
     conf: {}
     description: Lax filter since Majestic Million has mostly root level domains
-  - id: eval
-    filter: "true"
-    disabled: false
-    conf:
-      keep:
-        - _raw*
-        - cribl*
-        - _time
-        - source
-        - sourcetype
-        - host
-        - index
-      remove:
-        - "*"
-      add: []
-    description: Drop all unnecessary fields

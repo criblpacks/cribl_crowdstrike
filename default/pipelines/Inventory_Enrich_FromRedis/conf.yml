@@ -13,11 +13,12 @@ groups:
   5Nm97L:
     name: Remove Empty Arrays
     index: 3
+    disabled: false
 asyncFuncTimeout: 1000
 functions:
   - id: eval
-    filter: "!Array.isArray(_raw)"
-    disabled: true
+    filter: typeof _raw !== 'object'
+    disabled: false
     conf:
       add:
         - name: _raw
@@ -25,23 +26,24 @@ functions:
     description: Prep _raw as JSON if it isnt already a JSON object
   - id: redis
     filter: "true"
-    disabled: false
+    disabled: true
     conf:
       commands:
         - outField: ComputerName
           command: hget
           keyExpr: "'aid.'+_raw.aid"
           argsExpr: "'ComputerName'"
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:YDrPmwDqrXEodoRKc5w6vkI7fVupLBycZ+QsA7H0+500ZS569JQm2TVvuIGgS8nw\
-        aswmUxmxkoHMxM+rgsvvZw=="
+      password: "#42:g5j+/A88KJem22OIT++FOjqX37pREVRYNOW2KK+arBC+b6Ys2OA5K1Xr07s8jfa1\
+        /N6wtqI2/7sSBVE4HjjZLQ=="
     description: Enrich ComputerName ONLY with hget from Redis
     groupId: 6iaipC
   - id: redis
     filter: "true"
-    disabled: false
+    disabled: true
     conf:
       commands:
         - outField: Computer_OU
@@ -51,8 +53,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:DLmaQGkyBtg1/phmh3rtqc1YZO0V1PFH3l8RVcPUVweNwocCW9DqDLYIAERplmLt\
-        B7i/tiBmqrNGBNSxOEyJqQ=="
+      password: "#42:5YwDFossYidovVwChknh4Ya5EorZwKXttdCGriIeT1nFIzsVhUwl3hWGAm4ptsNu\
+        oi0r5LQh/+kJnk6l9cL6kQ=="
     description: Enrich multiple fields with hmget from Redis
     groupId: 6iaipC
   - id: redis
@@ -63,11 +65,12 @@ functions:
         - outField: Inventory
           command: hgetall
           keyExpr: "'aid.'+_raw.aid"
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:37LQNPNADUTc5uq02agwZIMEDW9V4WJ51pjzHgHu+WCxCtw0AamLgvBLVEBhzkVg\
-        /RWe31tyGRkzUQapc/5naQ=="
+      password: "#42:crcZTIWEPMF4E9eu6MfdHULgV03CM8CQDTzgKPFenk8QupAqeheXMOZKh8gi1dqj\
+        r68xwGQXY0CnR7f+rOHY2g=="
     description: Enrich ALL fields with hgetall from Redis
     groupId: 6iaipC
   - id: flatten
@@ -90,7 +93,7 @@ functions:
     groupId: kGuNiM
   - id: eval
     filter: "ComputerName==null "
-    disabled: null
+    disabled: false
     conf:
       remove:
         - ComputerName
@@ -98,7 +101,7 @@ functions:
     groupId: 5Nm97L
   - id: eval
     filter: "Inventory==null "
-    disabled: null
+    disabled: false
     conf:
       remove:
         - Inventory
@@ -106,20 +109,8 @@ functions:
     groupId: 5Nm97L
   - id: eval
     filter: Computer_OU.includes(null,null)
-    disabled: null
+    disabled: false
     conf:
       remove:
         - Computer_OU
     groupId: 5Nm97L
-  - id: redis
-    filter: "true"
-    disabled: null
-    conf:
-      commands:
-        - command: set
-          keyExpr: somekey
-          argsExpr: "'value'"
-          outField: somekey
-      authType: none
-      maxBlockSecs: 60
-      url: redis://redis-cache:6379

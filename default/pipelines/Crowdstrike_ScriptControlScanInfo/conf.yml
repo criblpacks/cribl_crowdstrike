@@ -3,8 +3,8 @@ groups: {}
 asyncFuncTimeout: 1000
 functions:
   - id: eval
-    filter: "true"
-    disabled: true
+    filter: typeof _raw !== 'object'
+    disabled: false
     conf:
       add:
         - name: _raw
@@ -12,11 +12,11 @@ functions:
     description: Enable when testing in this chained pipeline only. Disable before
       saving, as JSON.parse happens in Crowdstrike General pipeline
   - id: mask
-    filter: _raw.ScriptContent.includes('  ')
+    filter: _raw.ScriptContent.includes(' ')
     disabled: null
     conf:
       rules:
-        - matchRegex: /\s+/g
+        - matchRegex: /\s+/gm
           replaceExpr: "' '"
       fields:
         - _raw.ScriptContent

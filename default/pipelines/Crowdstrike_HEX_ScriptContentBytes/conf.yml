@@ -9,15 +9,9 @@ functions:
     conf:
       comment: Convert Windows ScriptContentBytes field to ASCII & remove fields with
         password
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: TURN OFF next Eval function before exiting. Turn on only when testing
-        within this pipeline
   - id: eval
-    filter: "true"
-    disabled: true
+    filter: typeof _raw !== 'object'
+    disabled: false
     conf:
       add:
         - name: _raw
@@ -26,7 +20,7 @@ functions:
       when complete
   - id: mask
     filter: "true"
-    disabled: null
+    disabled: false
     conf:
       rules:
         - matchRegex: /(\-|\s)(password(|\\\"|\s)([^\"\s\\]+))(|\/|\\\"|\s|\"\,)/

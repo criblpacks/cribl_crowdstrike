@@ -10,26 +10,23 @@ groups:
     index: 7
     disabled: true
     description: "B: Aggregate via Redis"
+  jwzZTy:
+    name: Redis_Serialize_Alternative
+    description: Alternative to last eval within Redis Agg group. Here for reference
+      only. Keep disabled
+    disabled: true
+    index: 9
 asyncFuncTimeout: 1000
 functions:
-  - id: serde
-    filter: "true"
+  - id: eval
+    filter: typeof _raw !== 'object'
     disabled: false
     conf:
-      mode: extract
-      type: json
-      srcField: _raw
-      keep:
-        - Local*
-        - Remote*
-        - aip
-        - aid
-        - Protocol
-        - event_simpleName
-        - Connection*
-        - timestamp
-        - event_platform
-    description: Agg & Filter prep
+      add:
+        - name: _raw
+          value: JSON.parse(_raw)
+    description: Convert to JSON if not already. Only here for when needing to test
+      events inside this pipeline instead of the top level Crowdstrike General
   - id: comment
     filter: "true"
     disabled: null
@@ -37,8 +34,8 @@ functions:
       comment: DROP events if remote host is the same as local host (i.e. app talking
         to another app on the same host)
   - id: drop
-    filter: RemoteAddressIP4.length>0 && LocalAddressIP4.length>0 &&
-      RemoteAddressIP4 == LocalAddressIP4
+    filter: _raw.RemoteAddressIP4.length>0 && _raw.LocalAddressIP4.length>0 &&
+      _raw.RemoteAddressIP4 == _raw.LocalAddressIP4
     disabled: false
     conf: {}
     description: RemoteIP = LocalIP
@@ -59,21 +56,23 @@ functions:
       passthrough: false
       preserveGroupBys: true
       sufficientStatsOnly: false
+      mergeSufficientStats: false
       metricsMode: false
       timeWindow: 60s
       aggregations:
-        - values(event_simpleName).as(event_simpleName)
-        - values(RemotePort).as(RemotePort)
-        - values(aip).as(aip)
-        - values(event_platform).as(event_platform)
+        - values(_raw.event_simpleName).as(event_simpleName)
+        - values(_raw.RemotePort).as(RemotePort)
+        - values(_raw.aip).as(aip)
+        - values(_raw.event_platform).as(event_platform)
         - count()
       cumulative: false
+      sendResetEvent: false
       flushOnInputClose: true
       groupbys:
-        - Local*
-        - RemoteAdd*
-        - aid*
-        - Protocol
+        - _raw.Local*
+        - _raw.RemoteAdd*
+        - _raw.aid*
+        - _raw.Protocol
         - index
         - sourcetype
         - host
@@ -83,27 +82,29 @@ functions:
     description: LocalAddress is likely the server, since port is lower. Aggregate
       on LocalPort, collect values of RemotePort
   - id: aggregation
-    filter: LocalPort > RemotePort || LocalPort==0
+    filter: _raw.LocalPort > _raw.RemotePort || _raw.LocalPort==0
     disabled: false
     conf:
       passthrough: false
       preserveGroupBys: false
       sufficientStatsOnly: false
+      mergeSufficientStats: false
       metricsMode: false
       timeWindow: 60s
       aggregations:
-        - values(event_simpleName).as(event_simpleName)
-        - values(LocalPort).as(LocalPort)
-        - values(aip).as(aip)
-        - values(event_platform).as(event_platform)
+        - values(_raw.event_simpleName).as(event_simpleName)
+        - values(_raw.LocalPort).as(LocalPort)
+        - values(_raw.aip).as(aip)
+        - values(_raw.event_platform).as(event_platform)
         - count()
       cumulative: false
+      sendResetEvent: false
       flushOnInputClose: true
       groupbys:
-        - LocalAdd*
-        - aid*
-        - Remote*
-        - Protocol
+        - _raw.LocalAdd*
+        - _raw.aid*
+        - _raw.Remote*
+        - _raw.Protocol
         - index
         - sourcetype
         - host
@@ -114,7 +115,7 @@ functions:
       on RemotePort, collect values of LocalPort
   - id: comment
     filter: "true"
-    disabled: null
+    disabled: false
     conf:
       comment: If values(xxx) returns array of 1 value, flatter the field
     groupId: lYiMNr
@@ -134,6 +135,15 @@ functions:
         - name: event_simpleName
           value: "event_simpleName.length==1 ? event_simpleName[0] : event_simpleName"
     groupId: lYiMNr
+    description: Trim fields with one value, rather than being nested
+  - id: rename
+    filter: "true"
+    disabled: null
+    conf:
+      wildcardDepth: 5
+      renameExpr: "name.startsWith('_raw\\.') ? name.replace('_raw\\.','') : name"
+    groupId: lYiMNr
+    description: Rename all the _raw.xxx fields
   - id: serialize
     filter: "true"
     disabled: false
@@ -151,6 +161,21 @@ functions:
         - "!index"
         - "*"
     groupId: lYiMNr
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      remove:
+        - "*"
+      keep:
+        - _raw
+        - cribl*
+        - _time
+        - source
+        - sourcetype
+        - host
+        - index
+    groupId: lYiMNr
   - id: comment
     filter: "true"
     disabled: null
@@ -161,31 +186,34 @@ functions:
     disabled: true
     conf:
       add:
-        - name: Agg_Count_Threshold
-          value: "100"
-        - name: Agg_Period
-          value: "60"
+        - name: __Agg_Count_Threshold
+          value: "10"
+        - name: __Agg_Period
+          value: "120"
+        - name: __Agg_Period_High
+          value: "86400"
     groupId: dlLbUK
     description: Agg Thresholds Definition
   - id: eval
-    filter: LocalPort !== undefined && RemotePort !== undefined
+    filter: _raw.LocalPort !== undefined && _raw.RemotePort !== undefined
     disabled: true
     conf:
       add:
         - name: __network_key
-          value: "LocalPort <= RemotePort && LocalPort !== 0 && RemotePort !==0 ?
-            '__net___'+LocalAddressIP4+'___'+LocalPort+'___'+RemoteAddressIP4+'\
-            ___'+Protocol :
-            '__net___'+RemoteAddressIP4+'___'+RemotePort+'___'+LocalAddressIP4+\
-            '___'+Protocol"
+          value: "_raw.LocalPort <= _raw.RemotePort && _raw.LocalPort !== 0 &&
+            _raw.RemotePort !==0 ?
+            '__net___'+_raw.LocalAddressIP4+'___'+_raw.LocalPort+'___'+_raw.Rem\
+            oteAddressIP4+'___'+_raw.Protocol :
+            '__net___'+_raw.RemoteAddressIP4+'___'+_raw.RemotePort+'___'+_raw.L\
+            ocalAddressIP4+'___'+_raw.Protocol"
         - name: __network_key
-          value: "LocalPort == 0 ?
-            '__net___'+RemoteAddressIP4+'___'+RemotePort+'___'+LocalAddressIP4+\
-            '___'+Protocol+'___'+aip : __network_key"
+          value: "_raw.LocalPort == 0 ?
+            '__net___'+_raw.RemoteAddressIP4+'___'+_raw.RemotePort+'___'+_raw.L\
+            ocalAddressIP4+'___'+_raw.Protocol+'___'+_raw.aip : __network_key"
         - name: __network_key
-          value: "RemotePort == 0  ?
-            '__net___'+LocalAddressIP4+'___'+LocalPort+'___'+RemoteAddressIP4+'\
-            ___'+Protocol+'___'+aip : __network_key"
+          value: "_raw.RemotePort == 0  ?
+            '__net___'+_raw.LocalAddressIP4+'___'+_raw.LocalPort+'___'+_raw.Rem\
+            oteAddressIP4+'___'+_raw.Protocol+'___'+_raw.aip : __network_key"
     groupId: dlLbUK
     description: set key field for redis; account for who has lower port and higher port
   - id: redis
@@ -197,11 +225,12 @@ functions:
           command: setnx
           keyExpr: __network_key
           argsExpr: "1"
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:wyZwuzEU3jx5pmKNTgzmuDizu0mMAIxpkcPTgQrUWNYvY7disrt2o3MTIdU/m7pd\
-        h26+2ydU6M94pRRfY48/XQ=="
+      password: "#42:LTO4z10mLxDeNuZOnh+6ei0rVFK8M7Ov0FDbXSytBtNaOFaQGzf9FnJuhei+EAmx\
+        aSzlcf8euS4ESAFKiGTB3w=="
     description: Create key in Redis regardless of traffic direction
     groupId: dlLbUK
   - id: redis
@@ -209,23 +238,16 @@ functions:
     disabled: true
     conf:
       commands:
-        - outField: __sadd_simplename_results
-          command: sadd
-          keyExpr: "'eventnames'+ __network_key"
-          argsExpr: event_simpleName
-        - outField: __expire_simplename_results
-          command: expire
-          keyExpr: "'eventnames'+ __network_key"
-          argsExpr: Agg_Period
         - outField: __expire_networkkey_results
           command: expire
           keyExpr: __network_key
-          argsExpr: Agg_Period
+          argsExpr: __Agg_Period_High
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:2+f7xq4WQBEYEcQhSGGXNO8SXLypBbNqsfHkn5qiYHRBC0HKo6O6z3rq/jeYeAiA\
-        AnwWC1qlYMJZj9zdhcs5Nw=="
+      password: "#42:0aAV53YhMfFvCnxDsFGwWPKv70AMlTYFwBwjSLjoAOcyb4qDPejhEXmxgKi3xDHz\
+        s7YVCP07FtXyR0eFxj4ojQ=="
     description: Avoiding collisions so lists of simpleNames are accurate. Setting
       values only if setnx was successful
     groupId: dlLbUK
@@ -234,87 +256,104 @@ functions:
     disabled: true
     conf:
       commands:
-        - outField: __sadd_simplename_results
-          command: sadd
-          keyExpr: "'eventnames'+ __network_key"
-          argsExpr: event_simpleName
         - command: incrby
           outField: Agg_Count
           keyExpr: __network_key
           argsExpr: "1"
-      authType: manual
-      maxBlockSecs: 60
-      url: redis://redis-cache:6379
-      password: "#42:yds++p2yocWZUSaPkC3sWPz24rvprND/nesQkj5bXpkrk/lg/U69edBb8+Go+cJj\
-        OI+kfdvqqVKicY3bmRQ50A=="
-    description: "Avoiding collisions so lists of simpleNames and count are accurate. "
-    groupId: dlLbUK
-  - id: redis
-    filter: __setnx_results==0 &&  Agg_Count == Agg_Count_Threshold
-    disabled: true
-    conf:
-      commands:
-        - outField: event_simpleName
-          command: smembers
-          keyExpr: "'eventnames'+ __network_key"
-        - outField: Agg_Window
+        - outField: __event_ttl_ms
           command: pttl
           keyExpr: __network_key
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:Z65Nk9/aZE6FsVXSYIptoziyzOzeyrU443F+RSXOCO+9MdUYMl+VC/7ERFPFDn/D\
-        sv/0bq6C1HYeCsZ4nq9yYQ=="
-    description: Get list of simpleNames being aggregated & time period for aggregation
+      password: "#42:XFeaYvm4LovChn9iHC72db0EKLiaz5ruaz0vqF9/dT4TY1eSpfi4vGV/rmqHzGff\
+        qa9TQkDJwgqzQvWgXx4zxg=="
+    description: "Avoiding collisions so lists of simpleNames and count are accurate. "
     groupId: dlLbUK
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - value: (__Agg_Period_High - (__event_ttl_ms/1000)).toFixed(3)
+          name: Agg_Window
+    groupId: dlLbUK
+    description: Calculate Aggregation Window
   - id: redis
-    filter: __setnx_results==0 &&  Agg_Count == Agg_Count_Threshold
+    filter: (__setnx_results==0 && Agg_Count == __Agg_Count_Threshold && Agg_Window
+      <= __Agg_Period) || (__setnx_results==0 && Agg_Window > __Agg_Period)
     disabled: true
     conf:
       commands:
-        - outField: __del_results
+        - outField: __del_network_key
           command: del
-          keyExpr: "'eventnames'+ __network_key"
-          argsExpr: __network_key
+          keyExpr: __network_key
+      deploymentType: standalone
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:3lL9Y8LRP1apHaejJRKGWHSIU9ztgSO+vXY57WOgdh45mbDXME+1m9ZI62wABGBD\
-        6kqDNniHKuMmZCA2ckccEQ=="
-    description: Delete both keys to start new aggregation period
+      password: "#42:KUSfOypJCQakyWr0OCSouem/k4hsKv0zmpmYaZXL/2pYojxEpQk9owE/2Xr9sifI\
+        zTAqX6LkLhJ5SfGgEUlFNw=="
+    description: Delete both keys to start new aggregation if one of prior
+      conditions was met
     groupId: dlLbUK
   - id: drop
-    filter: (__setnx_results==0 && Agg_Count < Agg_Count_Threshold) ||
-      (__setnx_results==1)
+    filter: (__setnx_results==0 && Agg_Count < __Agg_Count_Threshold && Agg_Window <
+      __Agg_Period) || (__setnx_results==1)
     disabled: true
     conf: {}
     groupId: dlLbUK
     final: true
-    description: Drop all events if agg count is less than 10
+    description: Drop event if agg count is less than threshold
   - id: eval
-    filter: Agg_Window !== undefined
+    filter: __setnx_results !== undefined
     disabled: true
     conf:
-      add:
-        - name: Agg_Window
-          value: (Agg_Period - Agg_Window/1000).toFixed(3)
+      remove:
+        - _raw.*
+      keep:
+        - _raw.aid
+        - _raw.aip
+        - _raw.Local*
+        - _raw.Remote*
+        - _raw.Protocol
+        - _raw.Conn*
+        - _raw.timestamp
+        - _raw.event_simpleName
+        - _raw.Agg*
     groupId: dlLbUK
-    description: Calculate Agg Window
+    description: Remove serialized fields
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Below group is for reference only. Includes alternative method of
+        sending count and agg_window inside _raw. Keep disabled.
   - id: eval
     filter: __setnx_results !== undefined
     disabled: true
     conf:
       add:
-        - value: "aip.length==1 ? aip[0] : aip"
+        - value: _raw.aip
           name: aip
+        - name: aid
+          value: _raw.aid
         - name: event_simpleName
-          value: "event_simpleName.length==1 ? event_simpleName[0] : event_simpleName"
+          value: _raw.event_simpleName
         - name: LocalPort
-          value: "LocalPort.length==1 ? LocalPort[0] : LocalPort"
-        - value: "RemotePort.length==1 ? RemotePort[0] : RemotePort"
+          value: _raw.LocalPort
+        - value: _raw.RemotePort
           name: RemotePort
-    groupId: dlLbUK
-    description: DeJSONify single value fields
+        - name: LocalAddressIP4
+          value: _raw.LocalAddressIP4
+        - name: RemoteAddressIP4
+          value: _raw.RemoteAddressIP4
+        - value: _raw.Protocol
+          name: _raw.Protocol
+    description: DeJSONify single value fields (doesn't apply to events dropped in
+      prior step)
+    groupId: jwzZTy
   - id: serialize
     filter: __setnx_results !== undefined
     disabled: true
@@ -329,11 +368,10 @@ functions:
         - Protocol
         - timestamp
         - "*count"
-        - "!Agg_Period"
         - Agg*
         - event_simpleName*
-    groupId: dlLbUK
     description: Built aggregate event
+    groupId: jwzZTy
   - id: eval
     filter: __setnx_results !== undefined
     disabled: true
@@ -348,21 +386,5 @@ functions:
         - timestamp
         - event_simpleName
         - Agg*
-    groupId: dlLbUK
     description: Remove serialized fields
-  - id: eval
-    filter: "true"
-    disabled: false
-    conf:
-      add: []
-      keep:
-        - cribl*
-        - _time
-        - _raw*
-        - index
-        - source
-        - sourcetype
-        - host
-      remove:
-        - "*"
-    description: Cleanup
+    groupId: jwzZTy

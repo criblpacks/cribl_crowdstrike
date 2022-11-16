@@ -173,3 +173,11 @@ functions:
     conf:
       processor: Inventory_Enrich_FromRedis
     description: Enrich from Redis
+  - id: eval
+    filter: typeof _raw == 'object'
+    disabled: false
+    conf:
+      add:
+        - name: _raw
+          value: JSON.stringify(_raw)
+    description: Stringify JSON for accurate outbound metric reporting
