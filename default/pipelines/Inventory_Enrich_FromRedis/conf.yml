@@ -1,20 +1,3 @@
-output: default
-groups:
-  6iaipC:
-    name: Enrich from Redis
-    description: ENABLE ONLY ONE FUNCTION in this group to minimize Redis polling
-    index: 1
-    disabled: false
-  kGuNiM:
-    name: Flatten Inventory array and move to _raw
-    index: 2
-    disabled: false
-    description: Only applies if Redis function defining Inventory is enabled
-  5Nm97L:
-    name: Remove Empty Arrays
-    index: 3
-    disabled: false
-asyncFuncTimeout: 1000
 functions:
   - id: eval
     filter: typeof _raw !== 'object'
@@ -37,8 +20,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:g5j+/A88KJem22OIT++FOjqX37pREVRYNOW2KK+arBC+b6Ys2OA5K1Xr07s8jfa1\
-        /N6wtqI2/7sSBVE4HjjZLQ=="
+      password: "#42:WCfoiG6CZ8FuKnPqBV0SIWxRAwqZAeKuv7UH1sqHCMLvMXPX7Nqouzozb65h2bdz\
+        uYAXV4Ej93bZaBJmonaZEg=="
     description: Enrich ComputerName ONLY with hget from Redis
     groupId: 6iaipC
   - id: redis
@@ -53,13 +36,13 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:5YwDFossYidovVwChknh4Ya5EorZwKXttdCGriIeT1nFIzsVhUwl3hWGAm4ptsNu\
-        oi0r5LQh/+kJnk6l9cL6kQ=="
+      password: "#42:EfiP4376U0ET7cttvjTpevSkXScN2ubcPqZz2298H7HfDZ9DDKIN1Un3Pd7oOCcz\
+        KoeBRnip3yhwMtksDwcTHw=="
     description: Enrich multiple fields with hmget from Redis
     groupId: 6iaipC
   - id: redis
     filter: "true"
-    disabled: false
+    disabled: true
     conf:
       commands:
         - outField: Inventory
@@ -69,8 +52,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:crcZTIWEPMF4E9eu6MfdHULgV03CM8CQDTzgKPFenk8QupAqeheXMOZKh8gi1dqj\
-        r68xwGQXY0CnR7f+rOHY2g=="
+      password: "#42:A0ljii4+GdWIxG0seck+U17A/Pn64pvHSH+q5Uo8EThm12YHJtEkJfn8C64qnMGk\
+        HzypPCBf1qy3l2P4Y18Mug=="
     description: Enrich ALL fields with hgetall from Redis
     groupId: 6iaipC
   - id: flatten

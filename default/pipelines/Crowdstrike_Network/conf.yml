@@ -50,7 +50,7 @@ functions:
     conf:
       comment: "GROUP A: Cribl Native Aggregation "
   - id: aggregation
-    filter: LocalPort <= RemotePort && LocalPort!=0
+    filter: _raw.LocalPort <= _raw.RemotePort && _raw.LocalPort!=0
     disabled: false
     conf:
       passthrough: false
@@ -138,7 +138,7 @@ functions:
     description: Trim fields with one value, rather than being nested
   - id: rename
     filter: "true"
-    disabled: null
+    disabled: false
     conf:
       wildcardDepth: 5
       renameExpr: "name.startsWith('_raw\\.') ? name.replace('_raw\\.','') : name"
@@ -163,7 +163,7 @@ functions:
     groupId: lYiMNr
   - id: eval
     filter: "true"
-    disabled: null
+    disabled: false
     conf:
       remove:
         - "*"
@@ -189,9 +189,9 @@ functions:
         - name: __Agg_Count_Threshold
           value: "10"
         - name: __Agg_Period
-          value: "120"
+          value: "10"
         - name: __Agg_Period_High
-          value: "86400"
+          value: "30"
     groupId: dlLbUK
     description: Agg Thresholds Definition
   - id: eval
@@ -229,8 +229,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:LTO4z10mLxDeNuZOnh+6ei0rVFK8M7Ov0FDbXSytBtNaOFaQGzf9FnJuhei+EAmx\
-        aSzlcf8euS4ESAFKiGTB3w=="
+      password: "#42:wglvZfroD9/WxofcVClduTQkrpLf05dSa2mlLZuIguYzU1aBjeQrZBt42Y2C7Mzr\
+        iz3GQ+9K06aVKbGmAnQVXw=="
     description: Create key in Redis regardless of traffic direction
     groupId: dlLbUK
   - id: redis
@@ -246,8 +246,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:0aAV53YhMfFvCnxDsFGwWPKv70AMlTYFwBwjSLjoAOcyb4qDPejhEXmxgKi3xDHz\
-        s7YVCP07FtXyR0eFxj4ojQ=="
+      password: "#42:ufIm4UElgbUYiA2IZgTB5HfWFRGd93ARuyT6rAftqlu47OhNsbVETAHv8GD8SnSk\
+        ozRLQ3q4SPGSU+ROsWhf5Q=="
     description: Avoiding collisions so lists of simpleNames are accurate. Setting
       values only if setnx was successful
     groupId: dlLbUK
@@ -267,8 +267,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:XFeaYvm4LovChn9iHC72db0EKLiaz5ruaz0vqF9/dT4TY1eSpfi4vGV/rmqHzGff\
-        qa9TQkDJwgqzQvWgXx4zxg=="
+      password: "#42:vNjDemM0QxXVY0UNcuQ3ZPMFn6+EOu2txeS5r7Gv5mVaWx1Z4rPhiKjtv1sIbNUb\
+        wJ+s60VUnH8YXNjudPj5lw=="
     description: "Avoiding collisions so lists of simpleNames and count are accurate. "
     groupId: dlLbUK
   - id: eval
@@ -293,8 +293,8 @@ functions:
       authType: manual
       maxBlockSecs: 60
       url: redis://redis-cache:6379
-      password: "#42:KUSfOypJCQakyWr0OCSouem/k4hsKv0zmpmYaZXL/2pYojxEpQk9owE/2Xr9sifI\
-        zTAqX6LkLhJ5SfGgEUlFNw=="
+      password: "#42:XUvjIrdI2CIkBESXuyKg4v+9CDGt8X0GsUiLcyseTajVP/3/B7FJ4dqSdCLrQ3eM\
+        cbyjLianhg7KZ2pvzIlPkQ=="
     description: Delete both keys to start new aggregation if one of prior
       conditions was met
     groupId: dlLbUK

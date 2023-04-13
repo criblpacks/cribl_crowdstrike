@@ -1,0 +1,57 @@
+routes:
+  - id: ZRmszg
+    name: Crowdstrike_Streaming_Events
+    final: true
+    disabled: false
+    pipeline: Crowdstrike_General
+    description: Streaming Crowdstrike Events
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: "source.indexOf('/data/') > -1 "
+    output: default
+  - id: default
+    name: Crowdstrike_aimaster_Inventory_Redis_Population
+    final: true
+    disabled: true
+    pipeline: Inventory_Events_Redis
+    description: Inventory logs routed to Redis for enrichment
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('fdrv2/aimaster') > -1
+    output: default
+  - id: 3CtsvC
+    name: Splunk_Crowdstrike_Inventory_Events
+    final: true
+    disabled: true
+    pipeline: Inventory_Events_Splunk_TA_Fields
+    description: Enable if inventory events need to go to Splunk. Disable the
+      previous passthru pipeline
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('/fdrv2/') == -1
+    output: default
+  - id: baUzTu
+    name: Crowdstrike_Inventory_Events_Passthru
+    final: true
+    disabled: true
+    pipeline: passthru
+    description: Enable if inventory events need to go to destinations
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: source.indexOf('/fdrv2/') == -1
+    output: default
+  - id: axEJ0g
+    name: default
+    final: true
+    disabled: true
+    pipeline: main
+    description: Default
+    clones: []
+    enableOutputExpression: false
+    outputExpression: null
+    filter: "true"
+    output: default

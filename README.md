@@ -41,17 +41,23 @@ Consider the following regarding the optional use of Redis:
 1. Create a new CrowdStrike Source or Amazon S3 Pull Source. This leverage SQS first to obtain a list of newly added files to the S3 bucket, which are subsequently downloaded.   
 **NOTE**: Do **not** confuse those Sources with an S3 Collector.  The S3 Collector is used for replays, adhoc pulls, and/or scheduled pulls from S3. It is not applicable here.
 
-2. Download and install this Event Breaker ruleset. Install it by hovering over the **Processing/Packs** menu at the view top of the Cribl UI, then select **Knowledge**, then select **Event Breakers**. 
+2. Under the source's 'advanced settings', ensure the visibility timeout is at 6 hours (21600 seconds). Crowdstrike loads 10-30 GB of data to several multipart gzip files. Raising this timeout ensure the worker process has plenty of time to download, uncompress, and process every event before issuing a deleteQueue message.
 
-Right Click [here](https://drive.google.com/uc?id=1GoVKO8y_9AlbFXalvsNqF6per96hUDQ3) download Cribl CrowdStrike Event Breaker Ruleset.
+3. Download and install this Event Breaker ruleset. Install it by hovering over the **Processing** menu at the view top of the Cribl UI, then select **Knowledge**, then select **Event Breakers**. 
 
-**[`Right Click to download Cribl Crowdstrike Event Breaker Ruleset`](https://drive.google.com/uc?id=1GoVKO8y_9AlbFXalvsNqF6per96hUDQ3)**
+    **[`Right Click to download Cribl Crowdstrike Event Breaker Ruleset from Google Drive`](https://drive.google.com/file/d/1VVVwAWNz3TNIr3mIUmnoQh9_fNwzglcU)**
 
-3. Associate the Event Breaker with the CrowdStrike FDR S3 Source.
+4. Associate the Event Breaker with the CrowdStrike FDR S3 Source.
 
-4. Create a Route with a filter to the FDR S3 Source, or QuickConnect from the FDR S3 Source and Select the `CrowdStrike Pack` pack as the Pipeline.
+5. Create a Route with a filter to the FDR S3 Source, or QuickConnect from the FDR S3 Source and Select the `CrowdStrike Pack` pack as the Pipeline.
 
-5. Capture data using **Capture** within the **Sample Data** right pane... to ensure your event formats match those in the Pack. 
+6. If sending to Splunk HEC as a destination, and you want Splunk TA compatibility, enable the `Splunk_Crowdstrike_Inventory_Events` route and disable the `Crowdstrike_Inventory_Events_Passthru` route
+
+7. If Splunk is the destination, edit the Crowdstrike_General pipeline, and towards the end, expand the `SIEM Fields` group, and enable the Splunk fields Eval function
+
+8. If Devo is the destination, edit the Crowdstrike_General pipeline, and towards the end, expand the `SIEM Fields` group, and enable the Devo fields Eval function
+
+9. Capture data using **Capture** within the **Sample Data** right pane... to ensure your event formats match those in the Pack. 
 
 If using Redis (optional, but recommended), edit all Pipelines with Redis Functions including: `Inventory_Events_Redis`, `Inventory_Enrich_FromRedis`, and `Crowdstrike_Network`. 
 Perform the following:
@@ -76,6 +82,24 @@ Optional modifications:
 
 
 ## Release Notes
+
+## Version 1.0.3 - 2023-04-05
+- Added Splunk TA compatibility. This requires sending to Splunk via HEC, not 'Splunk Load Balanced' Destination. Updates include:
+    - Assigning sourcetypes within the Crowdstrike_General pipeline's `SIEM fields` group, 
+    - New pipeline for assigning sourcetypes to inventory events
+    - New route to map the pipeline to the inventory events
+- Added JSON parse eval function to the 'other events pipeline. This allows for other subsequent steps in the Crowdstrike_General pipeline to continue processing these events.
+- Updated Event Breaker download link
+
+## Version 1.0.2 - 2023-02-04
+- Eliminated the following errors upon 1st load of the pack; a decrypt error everytime the network pipeline was accessed. THis was achieved by disabling ALL Redis functions in 3 pipelines: Crowdstrike_General, Inventory_Enrich_FromRedis, and Inventory_Events_Redis. Even when not used, they generated the many errors. BE SURE TO ENABLE THE REDIS FUNCTION OF INTEREST, NOT JUST THE GROUP.
+- Eliminated the error of a pipeline looking for a non-existent lookup. This was from an original pipeline and lookup, so were erroneous.
+
+## Version 1.0.1 - 2023-01-15
+###Enhancements:
+- Updated instructions to ensure Visibility Timeout is set to 21600 seconds
+- Change pack name to Crowdstrike FDR
+- Added functions for integrating with Devo (thank you Carley Rosato crosato@cribl.io)
 
 ## Version 1.0.0 - 2022-11-14
 #### Enhancements:

@@ -1,10 +1,3 @@
-output: default
-groups:
-  DmApP8:
-    name: Timestamp Fix
-    description: Known Events have timestamp or ContextTimeStamp
-    index: 6
-asyncFuncTimeout: 1000
 functions:
   - id: comment
     filter: "true"
@@ -29,29 +22,6 @@ functions:
         - name: _raw
           value: JSON.parse(_raw)
     description: JSON parse _raw
-  - id: comment
-    filter: "true"
-    disabled: null
-    conf:
-      comment: Splunk Destination Fields
-  - id: eval
-    filter: "true"
-    disabled: null
-    conf:
-      add:
-        - name: source
-          value: "source ? source : 'cribl_crowdstrike_s3'"
-        - name: sourcetype
-          value: "_raw.event_simpleName && !sourcetype ?
-            'crowdstrike:fdr:'+_raw.event_simpleName : sourcetype"
-        - value: "_raw.EventType && !sourcetype ? 'crowdstrike:fdr:'+_raw.EventType :
-            sourcetype"
-          name: sourcetype
-        - name: host
-          value: "host ? host : C.os.hostname()"
-        - name: index
-          value: "index ? index : 'main'"
-    description: Splunk Destination Fields
   - id: comment
     filter: "true"
     disabled: null
@@ -107,7 +77,7 @@ functions:
       comment: Chain functions for different event types
   - id: chain
     filter: C.Lookup('event_simpleName_NetworkEvents.csv').match(_raw.event_simpleName)
-    disabled: false
+    disabled: true
     conf:
       processor: Crowdstrike_Network
     description: Network Events
@@ -121,7 +91,7 @@ functions:
     final: false
   - id: chain
     filter: _raw.event_simpleName=='DnsRequest'
-    disabled: false
+    disabled: true
     conf:
       processor: Crowdstrike_DNS
     final: false
@@ -173,6 +143,68 @@ functions:
     conf:
       processor: Inventory_Enrich_FromRedis
     description: Enrich from Redis
+  - id: comment
+    filter: "true"
+    disabled: true
+    conf:
+      comment: Splunk Destination Fields, Updated to work with Splunk TA for FDR. Send
+        to Splunk via HEC RAW endpoint to have the TA update events
+    groupId: C1RbI2
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: source
+          value: "source ? source : 'cribl_crowdstrike_s3'"
+        - name: sourcetype
+          value: "(_raw.event_simpleName || _raw.EventType) ? 'crowdstrike:events:sensor'
+            : sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "_raw.EventType ? 'crowdstrike:events:external' : sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "_raw.event_type=='ZeroTrustHostAssessment' ? 'crowdstrike:events:ztha' :
+            sourcetype"
+        - name: host
+          value: "host ? host : C.os.hostname()"
+        - name: index
+          value: "index ? index : 'main'"
+    description: Splunk Destination Fields
+    groupId: C1RbI2
+  - id: comment
+    filter: "true"
+    disabled: true
+    conf:
+      comment: Devo Destination Fields
+    groupId: C1RbI2
+  - id: eval
+    filter: "true"
+    disabled: true
+    conf:
+      add:
+        - name: host
+          value: "host ? host : C.os.hostname"
+        - name: sourcetype
+          value: (_raw.event_simpleName).toLowerCase()
+        - name: message
+          value: JSON.stringify(_raw)
+        - name: appname
+          value: "`edr.crowdstrike.cannon.${sourcetype}.cribl`"
+        - name: __syslogout
+          value: '`<14>${C.Time.strftime(_time,"%Y-%m-%d %H:%M:%S")} ${host} ${appname}:
+            ${message}`'
+      remove:
+        - _raw
+    description: Devo Destination Fields, _raw removed to reduce memory footprint,
+      as __syslogout is used in destination
+    groupId: C1RbI2
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Stringify _raw for accurate outbound metric reporting
   - id: eval
     filter: typeof _raw == 'object'
     disabled: false

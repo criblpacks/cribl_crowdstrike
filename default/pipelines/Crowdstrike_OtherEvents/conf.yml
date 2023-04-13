@@ -1,6 +1,3 @@
-output: default
-groups: {}
-asyncFuncTimeout: 1000
 functions:
   - id: serde
     filter: "true"
@@ -17,3 +14,12 @@ functions:
       fieldFilterExpr: " value && value !== 'null'"
       keep: []
     description: Remove noisy, duplicative, and null fields
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - disabled: false
+          name: _raw
+          value: JSON.parse(_raw)
+    description: Prep event for final processing in Crowdstrike_General pipeline

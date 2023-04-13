@@ -17,7 +17,7 @@ functions:
       comment: Enable next function ONLY WHEN TESTING to expose the fields more easily
   - id: eval
     filter: "true"
-    disabled: true
+    disabled: false
     conf:
       add:
         - name: process_cmdline

@@ -1,0 +1,46 @@
+output: default
+streamtags: []
+groups: {}
+asyncFuncTimeout: 1000
+functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Splunk TA for Crowdstrike Inventory Events sourcetypes
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - disabled: false
+          name: source
+          value: "source ? source : 'cribl_crowdstrike_s3'"
+        - disabled: false
+          name: sourcetype
+          value: "source.includes('aidmaster') ? 'crowdstrike:inventory:aidmaster' :
+            sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "source.includes('managedassets') ? 'crowdstrike:inventory:managedassets'
+            : sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "source.includes('notmanaged') ? 'crowdstrike:inventory:notmanaged' :
+            sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "source.includes('appinfo') ? 'crowdstrike:inventory:appinfo' :
+            sourcetype"
+        - disabled: false
+          name: sourcetype
+          value: "source.includes('userinfo') ? 'crowdstrike:inventory:userinfo' :
+            sourcetype"
+        - disabled: false
+          name: host
+          value: "host ? host : C.os.hostname()"
+        - disabled: false
+          name: index
+          value: "index ? index : 'main'"
+    description: Splunk TA for Crowdstrike Inventory Events sourcetypes. Send through HEC
+description: Assigns correct sourcetype to FDR events to work with Splunk TA for FDR
